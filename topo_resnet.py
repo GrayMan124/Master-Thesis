@@ -23,6 +23,11 @@ from torch.utils.tensorboard import SummaryWriter
 import copy
 import json
 
+#imports from the files
+from utils import test_model, train_model, count_parameters
+from models.ResNet import ResNet_18
+from data_processing import *
+
 
 torch.autograd.set_detect_anomaly(True)
 
@@ -110,29 +115,29 @@ class MyDataset(Dataset):
         # Return a tuple (data, label)
         return self.data[idx], self.labels[idx]
 
-#Residual block
-class Block(nn.Module):
-    def __init__(self, in_channels, out_channels, identity_downsample=None, stride=1):
-        super(Block, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
-        self.bn1 = nn.BatchNorm2d(out_channels)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
-        self.bn2 = nn.BatchNorm2d(out_channels)
-        self.relu = nn.ReLU()
-        self.identity_downsample = identity_downsample
+# #Residual block
+# class Block(nn.Module):
+#     def __init__(self, in_channels, out_channels, identity_downsample=None, stride=1):
+#         super(Block, self).__init__()
+#         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
+#         self.bn1 = nn.BatchNorm2d(out_channels)
+#         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
+#         self.bn2 = nn.BatchNorm2d(out_channels)
+#         self.relu = nn.ReLU()
+#         self.identity_downsample = identity_downsample
 
-    def forward(self, x):
-        identity = x
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.conv2(x)
-        x = self.bn2(x)
-        if self.identity_downsample is not None:
-            identity = self.identity_downsample(identity)
-        x += identity
-        x = self.relu(x)
-        return x
+#     def forward(self, x):
+#         identity = x
+#         x = self.conv1(x)
+#         x = self.bn1(x)
+#         x = self.relu(x)
+#         x = self.conv2(x)
+#         x = self.bn2(x)
+#         if self.identity_downsample is not None:
+#             identity = self.identity_downsample(identity)
+#         x += identity
+#         x = self.relu(x)
+#         return x
 
 
 
@@ -351,61 +356,61 @@ class TopoIMG_ResNet(nn.Module): #this is based on the resnet implementation on 
         )
 
 
-#Base ResNet-18
-class ResNet_18(nn.Module):
+# #Base ResNet-18
+# class ResNet_18(nn.Module):
 
-    def __init__(self, image_channels, num_classes):
+#     def __init__(self, image_channels, num_classes):
 
-        super(ResNet_18, self).__init__()
-        self.in_channels = 64
-        self.conv1 = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
-        self.bn1 = nn.BatchNorm2d(64)
-        self.relu = nn.ReLU()
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+#         super(ResNet_18, self).__init__()
+#         self.in_channels = 64
+#         self.conv1 = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
+#         self.bn1 = nn.BatchNorm2d(64)
+#         self.relu = nn.ReLU()
+#         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
-        #resnet layers
-        self.layer1 = self.__make_layer(64, 64, stride=1)
-        self.layer2 = self.__make_layer(64, 128, stride=2)
-        self.layer3 = self.__make_layer(128, 256, stride=2)
-        self.layer4 = self.__make_layer(256, 512, stride=2)
+#         #resnet layers
+#         self.layer1 = self.__make_layer(64, 64, stride=1)
+#         self.layer2 = self.__make_layer(64, 128, stride=2)
+#         self.layer3 = self.__make_layer(128, 256, stride=2)
+#         self.layer4 = self.__make_layer(256, 512, stride=2)
 
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(512, num_classes)
+#         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+#         self.fc = nn.Linear(512, num_classes)
 
-    def __make_layer(self, in_channels, out_channels, stride):
+#     def __make_layer(self, in_channels, out_channels, stride):
 
-        identity_downsample = None
-        if stride != 1:
-            identity_downsample = self.identity_downsample(in_channels, out_channels)
+#         identity_downsample = None
+#         if stride != 1:
+#             identity_downsample = self.identity_downsample(in_channels, out_channels)
 
-        return nn.Sequential(
-            Block(in_channels, out_channels, identity_downsample=identity_downsample, stride=stride),
-            Block(out_channels, out_channels)
-        )
+#         return nn.Sequential(
+#             Block(in_channels, out_channels, identity_downsample=identity_downsample, stride=stride),
+#             Block(out_channels, out_channels)
+#         )
 
-    def forward(self, x):
+#     def forward(self, x):
 
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
+#         x = self.conv1(x)
+#         x = self.bn1(x)
+#         x = self.relu(x)
+#         x = self.maxpool(x)
 
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
+#         x = self.layer1(x)
+#         x = self.layer2(x)
+#         x = self.layer3(x)
+#         x = self.layer4(x)
 
-        x = self.avgpool(x)
-        x = x.view(x.shape[0], -1)
-        x = self.fc(x)
-        return x
+#         x = self.avgpool(x)
+#         x = x.view(x.shape[0], -1)
+#         x = self.fc(x)
+#         return x
 
-    def identity_downsample(self, in_channels, out_channels):
+#     def identity_downsample(self, in_channels, out_channels):
 
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(out_channels)
-        )
+#         return nn.Sequential(
+#             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1),
+#             nn.BatchNorm2d(out_channels)
+#         )
 
 #Resnet that also uses Topological features
 class ResNet_18_Topo(nn.Module):
@@ -989,581 +994,581 @@ class ResNet_18_Topo_Block(nn.Module):
 
 
 
-#Helper function for counting trainable parameters
-def count_parameters(model):
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+# #Helper function for counting trainable parameters
+# def count_parameters(model):
+#     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
 
 
 
-#Training function
-def train_model(model, dataloaders, criterion, optimizer, num_epochs=50, is_inception=False):
-    print('Traning model')
+# #Training function
+# def train_model(model, dataloaders, criterion, optimizer, num_epochs=50, is_inception=False):
+#     print('Traning model')
 
-    since = time.time()
-    val_acc_history = []
-    best_model_wts = copy.deepcopy(model.state_dict())
-    best_acc = 0.0
+#     since = time.time()
+#     val_acc_history = []
+#     best_model_wts = copy.deepcopy(model.state_dict())
+#     best_acc = 0.0
 
 
-    train_acc = 0.0
-    train_loss = 10
-    val_loss = 0.0
+#     train_acc = 0.0
+#     train_loss = 10
+#     val_loss = 0.0
 
-    for epoch in range(num_epochs):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
-        print('-' * 10)
+#     for epoch in range(num_epochs):
+#         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+#         print('-' * 10)
 
-        for phase in ['train', 'val']: # Each epoch has a training and validation phase
-            if phase == 'train':
-                model.train()  # Set model to training mode
-            else:
-                model.eval()   # Set model to evaluate mode
+#         for phase in ['train', 'val']: # Each epoch has a training and validation phase
+#             if phase == 'train':
+#                 model.train()  # Set model to training mode
+#             else:
+#                 model.eval()   # Set model to evaluate mode
 
-            running_loss = 0.0
-            running_corrects = 0
+#             running_loss = 0.0
+#             running_corrects = 0
 
-            for inputs, labels in tqdm(dataloaders[phase]): # Iterate over data
-                device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-                # inputs = transforms.functional.resize(inputs, (112, 112))
-                x1,x2 = inputs
-                x1.to(device)
-                x2.to(device)
-                inputs = (x1,x2)
+#             for inputs, labels in tqdm(dataloaders[phase]): # Iterate over data
+#                 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+#                 # inputs = transforms.functional.resize(inputs, (112, 112))
+#                 x1,x2 = inputs
+#                 x1.to(device)
+#                 x2.to(device)
+#                 inputs = (x1,x2)
 
-                labels = labels.to(device)
+#                 labels = labels.to(device)
 
-                optimizer.zero_grad() # Zero the parameter gradients
+#                 optimizer.zero_grad() # Zero the parameter gradients
 
-                with torch.set_grad_enabled(phase == 'train'): # Forward. Track history if only in train
+#                 with torch.set_grad_enabled(phase == 'train'): # Forward. Track history if only in train
 
-                    outputs = model(inputs)
-                    loss = criterion(outputs, labels)
-                    _, preds = torch.max(outputs, 1)
+#                     outputs = model(inputs)
+#                     loss = criterion(outputs, labels)
+#                     _, preds = torch.max(outputs, 1)
 
-                    if phase == 'train': # Backward + optimize only if in training phase
-                        loss.backward()
-                        optimizer.step()
+#                     if phase == 'train': # Backward + optimize only if in training phase
+#                         loss.backward()
+#                         optimizer.step()
 
-                # Statistics
-                running_loss += loss.item() * inputs[0].size(0)
-                running_corrects += torch.sum(preds == labels.data)
+#                 # Statistics
+#                 running_loss += loss.item() * inputs[0].size(0)
+#                 running_corrects += torch.sum(preds == labels.data)
 
 
-            epoch_loss = running_loss / len(dataloaders[phase].dataset)
-            epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
+#             epoch_loss = running_loss / len(dataloaders[phase].dataset)
+#             epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
 
-            if phase =='val':
-                writer.add_scalar("Loss/train", epoch_loss, epoch)
-                writer.add_scalar("Accuracy/train", epoch_acc, epoch)
-                if epoch_loss < val_loss:
-                    val_loss = epoch_loss
-            else:
-                if epoch_loss < train_loss:
-                    train_loss = epoch_loss
-                if epoch_acc > train_acc:
-                    train_acc = epoch_acc
-                writer.add_scalar("Loss/Val", epoch_loss, epoch)
-                writer.add_scalar("Accuracy/Val", epoch_acc, epoch)
+#             if phase =='val':
+#                 writer.add_scalar("Loss/train", epoch_loss, epoch)
+#                 writer.add_scalar("Accuracy/train", epoch_acc, epoch)
+#                 if epoch_loss < val_loss:
+#                     val_loss = epoch_loss
+#             else:
+#                 if epoch_loss < train_loss:
+#                     train_loss = epoch_loss
+#                 if epoch_acc > train_acc:
+#                     train_acc = epoch_acc
+#                 writer.add_scalar("Loss/Val", epoch_loss, epoch)
+#                 writer.add_scalar("Accuracy/Val", epoch_acc, epoch)
 
-            if phase == 'val': # Adjust learning rate based on val loss
-                lr_scheduler.step(epoch_loss)
+#             if phase == 'val': # Adjust learning rate based on val loss
+#                 lr_scheduler.step(epoch_loss)
 
 
 
-            print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
+#             print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
 
-            # deep copy the model
-            if phase == 'val' and epoch_acc > best_acc:
-                best_acc = epoch_acc
-                best_model_wts = copy.deepcopy(model.state_dict())
-            if phase == 'val':
-                val_acc_history.append(epoch_acc)
+#             # deep copy the model
+#             if phase == 'val' and epoch_acc > best_acc:
+#                 best_acc = epoch_acc
+#                 best_model_wts = copy.deepcopy(model.state_dict())
+#             if phase == 'val':
+#                 val_acc_history.append(epoch_acc)
 
-        print()
-
-    writer.flush()
-    writer.close()
-    time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-    print('Best val Acc: {:4f}'.format(best_acc))
-
-    with open(result_file,'a') as f:
-        new_line = f'Model: {args.name} train_loss: {train_loss} val_loss: {val_loss} train_acc: {train_acc*100} val_acc: {best_acc*100}\n'
-        f.writelines(new_line)
-
-    # load best model weights
-    model.load_state_dict(best_model_wts)
-    return model, val_acc_history
-
-
-def test_model(model, dataloader):
-    print('Testing model')
-    model.eval()
-    running_loss = 0.0
-    running_corrects = 0
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-    for inputs, labels in tqdm(dataloader):
-
-        if args.model != 'ResNet':
-            x1,x2 = inputs
-            x1.to(device)
-            x2.to(device)
-            inputs = (x1,x2)
+#         print()
+
+#     writer.flush()
+#     writer.close()
+#     time_elapsed = time.time() - since
+#     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+#     print('Best val Acc: {:4f}'.format(best_acc))
+
+#     with open(result_file,'a') as f:
+#         new_line = f'Model: {args.name} train_loss: {train_loss} val_loss: {val_loss} train_acc: {train_acc*100} val_acc: {best_acc*100}\n'
+#         f.writelines(new_line)
+
+#     # load best model weights
+#     model.load_state_dict(best_model_wts)
+#     return model, val_acc_history
+
+
+# def test_model(model, dataloader):
+#     print('Testing model')
+#     model.eval()
+#     running_loss = 0.0
+#     running_corrects = 0
+#     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+#     for inputs, labels in tqdm(dataloader):
+
+#         if args.model != 'ResNet':
+#             x1,x2 = inputs
+#             x1.to(device)
+#             x2.to(device)
+#             inputs = (x1,x2)
 
-        labels = labels.to(device)
+#         labels = labels.to(device)
 
-        optimizer.zero_grad() # Zero the parameter gradients
+#         optimizer.zero_grad() # Zero the parameter gradients
 
-        with torch.set_grad_enabled(False): # Forward. Track history if only in train
+#         with torch.set_grad_enabled(False): # Forward. Track history if only in train
 
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            _, preds = torch.max(outputs, 1)
+#             outputs = model(inputs)
+#             loss = criterion(outputs, labels)
+#             _, preds = torch.max(outputs, 1)
 
-        # Statistics
-        running_loss += loss.item() * inputs[0].size(0)
-        running_corrects += torch.sum(preds == labels.data)
+#         # Statistics
+#         running_loss += loss.item() * inputs[0].size(0)
+#         running_corrects += torch.sum(preds == labels.data)
 
 
-    total_loss = running_loss / len(dataloader.dataset)
-    total_acc = running_corrects.double() / len(dataloader.dataset)
-    print('{} Loss: {:.4f} Acc: {:.4f}'.format('Test', total_loss, total_acc))
+#     total_loss = running_loss / len(dataloader.dataset)
+#     total_acc = running_corrects.double() / len(dataloader.dataset)
+#     print('{} Loss: {:.4f} Acc: {:.4f}'.format('Test', total_loss, total_acc))
 
 
-#Function to process the image that is:
-# - Change the image to Gray-scale
-# - Calculate the topological features
-def process_img_topo_land(data, to_grayscale = transforms.Grayscale(num_output_channels=1)): #Processing to Landscapes
-    #Grayscale using provided function
-    try:
-        transform=transforms.Compose(
-            [transforms.ToTensor(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-        # transforms = v2.Compose([
-        #     v2.RandomResizedCrop(size=(224, 224), antialias=True),
-        #     v2.RandomHorizontalFlip(p=0.5),
-        #     v2.ToDtype(torch.float32, scale=True),
-        #     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-        #     ])
+# #Function to process the image that is:
+# # - Change the image to Gray-scale
+# # - Calculate the topological features
+# def process_img_topo_land(data, to_grayscale = transforms.Grayscale(num_output_channels=1)): #Processing to Landscapes
+#     #Grayscale using provided function
+#     try:
+#         transform=transforms.Compose(
+#             [transforms.ToTensor(),
+#                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+#         # transforms = v2.Compose([
+#         #     v2.RandomResizedCrop(size=(224, 224), antialias=True),
+#         #     v2.RandomHorizontalFlip(p=0.5),
+#         #     v2.ToDtype(torch.float32, scale=True),
+#         #     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+#         #     ])
 
 
-        # test_transform = transforms.Compose([
-        #         transforms.ToTensor(),
-        #         transforms.Normalize(mean=[0.5, 0.5, 0.5])
-        #     ])
-        # transform = transforms.Compose([
-        #         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
-        #         transforms.RandomCrop(32, padding=4), # Randomly crop the image with padding
-        #         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
-        #         transforms.RandomRotation(15),        # Randomly rotate the image
-        #         transforms.ToTensor(),                # Convert image to PyTorch tensor
-        #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) # Normalize the image
-        #     ])
-
-        if args.bw =='cv2':
-            transform_bw=transforms.Compose(
-                [transforms.ToTensor(),
-                    transforms.Normalize(0.5, 0.5, 0.5)])
-            bw_img = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
-            img = Image.fromarray(data)
-            bw_img = Image.fromarray(bw_img)
-            image = transform(img)
-            bw_img = transform_bw(bw_img)
-
-        elif args.bw == 'torch':
-            pass #TODO
-
-        gray_scale_img = bw_img # to_grayscale(image)
-        # calcuating the cubical complex
-        cubical_complex = gd.CubicalComplex(dimensions=gray_scale_img.shape, top_dimensional_cells=gray_scale_img.flatten())
-        # Calculating persistance
-        diag = cubical_complex.persistence()
-        # Calculating Landscape
-        LS = gd.representations.Landscape(resolution=args.res)
-
-        if args.topodim_concat:
-            LS_0 = LS.fit_transform([cubical_complex.persistence_intervals_in_dimension(0)[:-1]])
-            L_t_0 = torch.tensor(LS_0,dtype=torch.float)
-            LS_1 = LS.fit_transform([cubical_complex.persistence_intervals_in_dimension(1)])
-            L_t_1 = torch.tensor(LS_1,dtype=torch.float)
-            L_t = torch.cat([L_t_0,L_t_1],dim=1)
-
-        elif args.topodim == 0:
-            LS = LS.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)[:-1]])
-            L_t = torch.tensor(LS,dtype=torch.float)
-
-        elif args.topodim == 1:
-            LS = LS.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)])
-            L_t = torch.tensor(LS,dtype=torch.float)
-
-
-        # L = LS.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)])
-        # L_t = torch.tensor(L,dtype=torch.float)
-
-
-
-
-
-        # L_t = L_t[:,:200]
-
-        if L_t is None:
-            raise('None in the Landscape processing L_T')
-
-        return image, L_t
-
-    except Exception as e:
-        print(f"Error with item {item}: {e}")
-        return None
-
-def process_img_topo_betti_curve(data, to_grayscale = transforms.Grayscale(num_output_channels=1)): #Processing to Betti_curves
-    #Grayscale using provided function
-
-
-    transform=transforms.Compose(
-        [transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-
-    # transforms = v2.Compose([
-    #     v2.RandomResizedCrop(size=(224, 224), antialias=True),
-    #     v2.RandomHorizontalFlip(p=0.5),
-    #     v2.ToDtype(torch.float32, scale=True),
-    #     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-    #     ])
-
-    # transform = transforms.Compose([
-    #         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
-    #         transforms.RandomCrop(32, padding=4), # Randomly crop the image with padding
-    #         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
-    #         transforms.RandomRotation(15),        # Randomly rotate the image
-    #         transforms.ToTensor(),                # Convert image to PyTorch tensor
-    #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) # Normalize the image
-    #     ])
-
-    transform_bw=transforms.Compose(
-            [transforms.ToTensor(),
-                transforms.Normalize(0.5, 0.5, 0.5)])
-
-    bw_img = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
-    img = Image.fromarray(data)
-    bw_img = Image.fromarray(bw_img)
-    image = transform(img)
-    bw_img = transform_bw(bw_img)
-    # print(image.shape)
-    gray_scale_img = bw_img # to_grayscale(image)
-    # calcuating the cubical complex
-    cubical_complex = gd.CubicalComplex(dimensions=gray_scale_img.shape, top_dimensional_cells=gray_scale_img.flatten())
-    # Calculating persistance
-    diag = cubical_complex.persistence()
-    # Calculating BettiCurve
-    BC = gd.representations.vector_methods.BettiCurve()
-
-    #This is created, because of the error caused by the  [x,+inf] persistant interval (connected components)
-    if args.topodim_concat:
-        BC_0 = BC.fit_transform([cubical_complex.persistence_intervals_in_dimension(0)[:-1]])
-        L_t_0 = torch.tensor(BC_0,dtype=torch.float)
-        BC_1 = BC.fit_transform([cubical_complex.persistence_intervals_in_dimension(1)])
-        L_t_1 = torch.tensor(BC_1,dtype=torch.float)
-        L_t = torch.cat([L_t_0,L_t_1],dim=1)
-
-    elif args.topodim == 0:
-        BC = BC.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)[:-1]])
-        L_t = torch.tensor(BC,dtype=torch.float)
-
-    elif args.topodim == 1:
-        BC = BC.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)])
-        L_t = torch.tensor(BC,dtype=torch.float)
-
-
-
-    return image, L_t
-
-#Processing using the topological Silhouette
-def process_img_topo_silh(data, to_grayscale = transforms.Grayscale(num_output_channels=1)): #Processing to Silhouette
-    #Grayscale using provided function
-
-
-    transform=transforms.Compose(
-        [transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-
-    # transforms = v2.Compose([
-    #     v2.RandomResizedCrop(size=(224, 224), antialias=True),
-    #     v2.RandomHorizontalFlip(p=0.5),
-    #     v2.ToDtype(torch.float32, scale=True),
-    #     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-    #     ])
-
-    # transform = transforms.Compose([
-    #         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
-    #         transforms.RandomCrop(32, padding=4), # Randomly crop the image with padding
-    #         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
-    #         transforms.RandomRotation(15),        # Randomly rotate the image
-    #         transforms.ToTensor(),                # Convert image to PyTorch tensor
-    #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) # Normalize the image
-    #     ])
-
-    transform_bw=transforms.Compose(
-            [transforms.ToTensor(),
-                transforms.Normalize(0.5, 0.5, 0.5)])
-
-    bw_img = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
-    img = Image.fromarray(data)
-    bw_img = Image.fromarray(bw_img)
-    image = transform(img)
-    bw_img = transform_bw(bw_img)
-    # print(image.shape)
-    gray_scale_img = bw_img # to_grayscale(image)
-    # calcuating the cubical complex
-    cubical_complex = gd.CubicalComplex(dimensions=gray_scale_img.shape, top_dimensional_cells=gray_scale_img.flatten())
-    # Calculating persistance
-    diag = cubical_complex.persistence()
-    # Calculating BettiCurve
-    SI = gd.representations.vector_methods.Silhouette()
-
-    #This is created, because of the error caused by the  [x,+inf] persistant interval (connected components)
-    if args.topodim_concat:
-        SI_0 = SI.fit_transform([cubical_complex.persistence_intervals_in_dimension(0)[:-1]])
-        L_t_0 = torch.tensor(SI_0,dtype=torch.float)
-        SI_1 = SI.fit_transform([cubical_complex.persistence_intervals_in_dimension(1)])
-        L_t_1 = torch.tensor(SI_1,dtype=torch.float)
-        L_t = torch.cat([L_t_0,L_t_1],dim=1)
-
-    elif args.topodim == 0:
-        SI = SI.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)[:-1]])
-        L_t = torch.tensor(SI,dtype=torch.float)
-
-    elif args.topodim == 1:
-        SI = SI.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)])
-        L_t = torch.tensor(SI,dtype=torch.float)
-
-
-
-    return image, L_t
-
-
-def process_img_topo_pi_v(data, to_grayscale = transforms.Grayscale(num_output_channels=1)): #Processing to Persistant images
-    #Grayscale using provided function
-
-
-    transform=transforms.Compose(
-        [transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-
-    # transforms = v2.Compose([
-    #     v2.RandomResizedCrop(size=(224, 224), antialias=True),
-    #     v2.RandomHorizontalFlip(p=0.5),
-    #     v2.ToDtype(torch.float32, scale=True),
-    #     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-    #     ])
-
-    # transform = transforms.Compose([
-    #         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
-    #         transforms.RandomCrop(32, padding=4), # Randomly crop the image with padding
-    #         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
-    #         transforms.RandomRotation(15),        # Randomly rotate the image
-    #         transforms.ToTensor(),                # Convert image to PyTorch tensor
-    #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) # Normalize the image
-    #     ])
-
-    transform_bw=transforms.Compose(
-            [transforms.ToTensor(),
-                transforms.Normalize(0.5, 0.5, 0.5)])
-
-    bw_img = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
-    img = Image.fromarray(data)
-    bw_img = Image.fromarray(bw_img)
-    image = transform(img)
-    bw_img = transform_bw(bw_img)
-    # print(image.shape)
-    gray_scale_img = bw_img # to_grayscale(image)
-    # calcuating the cubical complex
-    cubical_complex = gd.CubicalComplex(dimensions=gray_scale_img.shape, top_dimensional_cells=gray_scale_img.flatten())
-    # Calculating persistance
-    diag = cubical_complex.persistence()
-    # Calculating BettiCurve
-    PI = gd.representations.PersistenceImage(bandwidth=0.05,resolution=[64,64],weight=lambda x: x[1]**2, im_range=[0,0.6,0,0.6])
-
-    #This is created, because of the error caused by the  [x,+inf] persistant interval (connected components)
-    if args.topodim_concat:
-        PI_0 = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(0)[:-1]])
-        L_t_0 = torch.tensor(PI_0,dtype=torch.float)
-        PI_1 = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(1)])
-        L_t_1 = torch.tensor(PI_1,dtype=torch.float)
-        L_t = torch.cat([L_t_0,L_t_1],dim=1)
-
-    elif args.topodim == 0:
-        PI = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)[:-1]])
-        L_t = torch.tensor(PI,dtype=torch.float)
-
-    elif args.topodim == 1:
-        PI = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)])
-        L_t = torch.tensor(PI,dtype=torch.float)
-
-
-
-    return image, L_t
-
-
-def process_img_topo_pi_img(data, to_grayscale = transforms.Grayscale(num_output_channels=1)): #Processing to Persistant images
-    #Grayscale using provided function
-
-
-    transform=transforms.Compose(
-        [transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-    #This transform is for the augmentation methods
-
-    # transforms = v2.Compose([
-    #     v2.RandomResizedCrop(size=(224, 224), antialias=True),
-    #     v2.RandomHorizontalFlip(p=0.5),
-    #     v2.ToDtype(torch.float32, scale=True),
-    #     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-    #     ])
-
-    # transform = transforms.Compose([
-    #         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
-    #         transforms.RandomCrop(32, padding=4), # Randomly crop the image with padding
-    #         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
-    #         transforms.RandomRotation(15),        # Randomly rotate the image
-    #         transforms.ToTensor(),                # Convert image to PyTorch tensor
-    #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) # Normalize the image
-    #     ])
-
-    transform_bw=transforms.Compose(
-            [transforms.ToTensor(),
-                transforms.Normalize(0.5, 0.5, 0.5)])
-
-    bw_img = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
-    img = Image.fromarray(data)
-    bw_img = Image.fromarray(bw_img)
-    image = transform(img)
-    bw_img = transform_bw(bw_img)
-    # print(image.shape)
-    gray_scale_img = bw_img # to_grayscale(image)
-    # calcuating the cubical complex
-    cubical_complex = gd.CubicalComplex(dimensions=gray_scale_img.shape, top_dimensional_cells=gray_scale_img.flatten())
-    # Calculating persistance
-    diag = cubical_complex.persistence()
-    # Calculating BettiCurve
-    PI = gd.representations.PersistenceImage(bandwidth=0.05,resolution=[64,64],weight=lambda x: x[1]**2, im_range=[0,0.6,0,0.6])
-
-    #For the Persistent Images, the concat output gives 2 images - a simple solution
-    if args.topodim_concat:
-        PI_0 = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(0)[:-1]])
-        L_t_0 = torch.tensor(PI_0,dtype=torch.float)
-        PI_1 = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(1)])
-        L_t_1 = torch.tensor(PI_1,dtype=torch.float)
-        L_t = (L_t_0,L_t_1)
-
-    elif args.topodim == 0:
-        PI = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)[:-1]])
-        L_t = torch.tensor(PI,dtype=torch.float).reshape([1,64,64])
-
-    elif args.topodim == 1:
-        PI = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)])
-        L_t = torch.tensor(PI,dtype=torch.float).reshape([1,64,64])
-
-
-
-    return image, L_t
-
-def process_data_topo(dataset, train_set = True, from_train = None):
-    data = dataset.data
-
-    data_len = data.shape[0]
-
-    if args.tv == 'land':
-        print('Processing data using landscape vectorization')
-        if args.cores <= 1:
-            results = []
-            print('processing using a single core - NO multiprocessing')
-            for sample in tqdm(data):
-                results.append(process_img_topo_land(sample))
-        else:
-            with Pool(args.cores) as pool: #multiprocessing the topological data transform
-                results = list(tqdm(pool.imap(process_img_topo_land,data),total=len(data)))
-
-
-    elif args.tv == 'bc':
-        print('Processing data using betti curve vectorization')
-
-        if args.cores <= 1:
-            results = []
-            print('processing using a single core - NO multiprocessing')
-            for sample in tqdm(data):
-                results.append(process_img_topo_betti_curve(sample))
-        else:
-            with Pool(args.cores) as pool: #multiprocessing the topological data transform
-                results = list(tqdm(pool.imap(process_img_topo_betti_curve,data),total=len(data)))
-
-    elif args.tv == 'pi_v':
-        print('Processing data using PI (Vector)')
-
-        if args.cores <= 1:
-            results = []
-            print('processing using a single core - NO multiprocessing')
-            for sample in tqdm(data):
-                results.append(process_img_topo_pi_v(sample))
-        else:
-            with Pool(args.cores) as pool: #multiprocessing the topological data transform
-                results = list(tqdm(pool.imap(process_img_topo_pi_v,data),total=len(data)))
-
-    elif args.tv == 'pi_img':
-        print('Processing data using PI (Image)')
-
-        if args.cores <= 1:
-            results = []
-            print('processing using a single core - NO multiprocessing')
-            for sample in tqdm(data):
-                results.append(process_img_topo_pi_img(sample))
-        else:
-            with Pool(args.cores) as pool: #multiprocessing the topological data transform
-                results = list(tqdm(pool.imap(process_img_topo_pi_img,data),total=len(data)))
-
-    elif args.tv == 'silh':
-        print('Processing data using Silhouette vectorization')
-
-        if args.cores <= 1:
-            results = []
-            print('processing using a single core - NO multiprocessing')
-            for sample in tqdm(data):
-                results.append(process_img_topo_silh(sample))
-        else:
-            with Pool(args.cores) as pool: #multiprocessing the topological data transform
-                results = list(tqdm(pool.imap(process_img_topo_silh,data),total=len(data)))
-
-    else:
-        raise('Error - invalid topological vectorization method')
-
-
-
-    tmp_topo_data = [item[1] for item in results]
-    tensor_topo_data = torch.cat(tmp_topo_data,dim=0)
-
-    if from_train is not None:
-        max = from_train[0]
-        min = from_train[1]
-    else:
-        min = tensor_topo_data.min()
-        max = tensor_topo_data.max()
-
-    new_res = []
-    for img,topo in results:
-        stand_topo = (topo - min)/(max-min)
-        new_res.append((img,stand_topo))
-    results = new_res
-
-    if train_set:
-        return results, (max,min)
-
-    return results
+#         # test_transform = transforms.Compose([
+#         #         transforms.ToTensor(),
+#         #         transforms.Normalize(mean=[0.5, 0.5, 0.5])
+#         #     ])
+#         # transform = transforms.Compose([
+#         #         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
+#         #         transforms.RandomCrop(32, padding=4), # Randomly crop the image with padding
+#         #         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+#         #         transforms.RandomRotation(15),        # Randomly rotate the image
+#         #         transforms.ToTensor(),                # Convert image to PyTorch tensor
+#         #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) # Normalize the image
+#         #     ])
+
+#         if args.bw =='cv2':
+#             transform_bw=transforms.Compose(
+#                 [transforms.ToTensor(),
+#                     transforms.Normalize(0.5, 0.5, 0.5)])
+#             bw_img = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
+#             img = Image.fromarray(data)
+#             bw_img = Image.fromarray(bw_img)
+#             image = transform(img)
+#             bw_img = transform_bw(bw_img)
+
+#         elif args.bw == 'torch':
+#             pass #TODO
+
+#         gray_scale_img = bw_img # to_grayscale(image)
+#         # calcuating the cubical complex
+#         cubical_complex = gd.CubicalComplex(dimensions=gray_scale_img.shape, top_dimensional_cells=gray_scale_img.flatten())
+#         # Calculating persistance
+#         diag = cubical_complex.persistence()
+#         # Calculating Landscape
+#         LS = gd.representations.Landscape(resolution=args.res)
+
+#         if args.topodim_concat:
+#             LS_0 = LS.fit_transform([cubical_complex.persistence_intervals_in_dimension(0)[:-1]])
+#             L_t_0 = torch.tensor(LS_0,dtype=torch.float)
+#             LS_1 = LS.fit_transform([cubical_complex.persistence_intervals_in_dimension(1)])
+#             L_t_1 = torch.tensor(LS_1,dtype=torch.float)
+#             L_t = torch.cat([L_t_0,L_t_1],dim=1)
+
+#         elif args.topodim == 0:
+#             LS = LS.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)[:-1]])
+#             L_t = torch.tensor(LS,dtype=torch.float)
+
+#         elif args.topodim == 1:
+#             LS = LS.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)])
+#             L_t = torch.tensor(LS,dtype=torch.float)
+
+
+#         # L = LS.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)])
+#         # L_t = torch.tensor(L,dtype=torch.float)
+
+
+
+
+
+#         # L_t = L_t[:,:200]
+
+#         if L_t is None:
+#             raise('None in the Landscape processing L_T')
+
+#         return image, L_t
+
+#     except Exception as e:
+#         print(f"Error with item {item}: {e}")
+#         return None
+
+# def process_img_topo_betti_curve(data, to_grayscale = transforms.Grayscale(num_output_channels=1)): #Processing to Betti_curves
+#     #Grayscale using provided function
+
+
+#     transform=transforms.Compose(
+#         [transforms.ToTensor(),
+#             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+
+#     # transforms = v2.Compose([
+#     #     v2.RandomResizedCrop(size=(224, 224), antialias=True),
+#     #     v2.RandomHorizontalFlip(p=0.5),
+#     #     v2.ToDtype(torch.float32, scale=True),
+#     #     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+#     #     ])
+
+#     # transform = transforms.Compose([
+#     #         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
+#     #         transforms.RandomCrop(32, padding=4), # Randomly crop the image with padding
+#     #         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+#     #         transforms.RandomRotation(15),        # Randomly rotate the image
+#     #         transforms.ToTensor(),                # Convert image to PyTorch tensor
+#     #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) # Normalize the image
+#     #     ])
+
+#     transform_bw=transforms.Compose(
+#             [transforms.ToTensor(),
+#                 transforms.Normalize(0.5, 0.5, 0.5)])
+
+#     bw_img = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
+#     img = Image.fromarray(data)
+#     bw_img = Image.fromarray(bw_img)
+#     image = transform(img)
+#     bw_img = transform_bw(bw_img)
+#     # print(image.shape)
+#     gray_scale_img = bw_img # to_grayscale(image)
+#     # calcuating the cubical complex
+#     cubical_complex = gd.CubicalComplex(dimensions=gray_scale_img.shape, top_dimensional_cells=gray_scale_img.flatten())
+#     # Calculating persistance
+#     diag = cubical_complex.persistence()
+#     # Calculating BettiCurve
+#     BC = gd.representations.vector_methods.BettiCurve()
+
+#     #This is created, because of the error caused by the  [x,+inf] persistant interval (connected components)
+#     if args.topodim_concat:
+#         BC_0 = BC.fit_transform([cubical_complex.persistence_intervals_in_dimension(0)[:-1]])
+#         L_t_0 = torch.tensor(BC_0,dtype=torch.float)
+#         BC_1 = BC.fit_transform([cubical_complex.persistence_intervals_in_dimension(1)])
+#         L_t_1 = torch.tensor(BC_1,dtype=torch.float)
+#         L_t = torch.cat([L_t_0,L_t_1],dim=1)
+
+#     elif args.topodim == 0:
+#         BC = BC.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)[:-1]])
+#         L_t = torch.tensor(BC,dtype=torch.float)
+
+#     elif args.topodim == 1:
+#         BC = BC.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)])
+#         L_t = torch.tensor(BC,dtype=torch.float)
+
+
+
+#     return image, L_t
+
+# #Processing using the topological Silhouette
+# def process_img_topo_silh(data, to_grayscale = transforms.Grayscale(num_output_channels=1)): #Processing to Silhouette
+#     #Grayscale using provided function
+
+
+#     transform=transforms.Compose(
+#         [transforms.ToTensor(),
+#             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+
+#     # transforms = v2.Compose([
+#     #     v2.RandomResizedCrop(size=(224, 224), antialias=True),
+#     #     v2.RandomHorizontalFlip(p=0.5),
+#     #     v2.ToDtype(torch.float32, scale=True),
+#     #     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+#     #     ])
+
+#     # transform = transforms.Compose([
+#     #         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
+#     #         transforms.RandomCrop(32, padding=4), # Randomly crop the image with padding
+#     #         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+#     #         transforms.RandomRotation(15),        # Randomly rotate the image
+#     #         transforms.ToTensor(),                # Convert image to PyTorch tensor
+#     #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) # Normalize the image
+#     #     ])
+
+#     transform_bw=transforms.Compose(
+#             [transforms.ToTensor(),
+#                 transforms.Normalize(0.5, 0.5, 0.5)])
+
+#     bw_img = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
+#     img = Image.fromarray(data)
+#     bw_img = Image.fromarray(bw_img)
+#     image = transform(img)
+#     bw_img = transform_bw(bw_img)
+#     # print(image.shape)
+#     gray_scale_img = bw_img # to_grayscale(image)
+#     # calcuating the cubical complex
+#     cubical_complex = gd.CubicalComplex(dimensions=gray_scale_img.shape, top_dimensional_cells=gray_scale_img.flatten())
+#     # Calculating persistance
+#     diag = cubical_complex.persistence()
+#     # Calculating BettiCurve
+#     SI = gd.representations.vector_methods.Silhouette()
+
+#     #This is created, because of the error caused by the  [x,+inf] persistant interval (connected components)
+#     if args.topodim_concat:
+#         SI_0 = SI.fit_transform([cubical_complex.persistence_intervals_in_dimension(0)[:-1]])
+#         L_t_0 = torch.tensor(SI_0,dtype=torch.float)
+#         SI_1 = SI.fit_transform([cubical_complex.persistence_intervals_in_dimension(1)])
+#         L_t_1 = torch.tensor(SI_1,dtype=torch.float)
+#         L_t = torch.cat([L_t_0,L_t_1],dim=1)
+
+#     elif args.topodim == 0:
+#         SI = SI.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)[:-1]])
+#         L_t = torch.tensor(SI,dtype=torch.float)
+
+#     elif args.topodim == 1:
+#         SI = SI.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)])
+#         L_t = torch.tensor(SI,dtype=torch.float)
+
+
+
+#     return image, L_t
+
+
+# def process_img_topo_pi_v(data, to_grayscale = transforms.Grayscale(num_output_channels=1)): #Processing to Persistant images
+#     #Grayscale using provided function
+
+
+#     transform=transforms.Compose(
+#         [transforms.ToTensor(),
+#             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+
+#     # transforms = v2.Compose([
+#     #     v2.RandomResizedCrop(size=(224, 224), antialias=True),
+#     #     v2.RandomHorizontalFlip(p=0.5),
+#     #     v2.ToDtype(torch.float32, scale=True),
+#     #     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+#     #     ])
+
+#     # transform = transforms.Compose([
+#     #         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
+#     #         transforms.RandomCrop(32, padding=4), # Randomly crop the image with padding
+#     #         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+#     #         transforms.RandomRotation(15),        # Randomly rotate the image
+#     #         transforms.ToTensor(),                # Convert image to PyTorch tensor
+#     #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) # Normalize the image
+#     #     ])
+
+#     transform_bw=transforms.Compose(
+#             [transforms.ToTensor(),
+#                 transforms.Normalize(0.5, 0.5, 0.5)])
+
+#     bw_img = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
+#     img = Image.fromarray(data)
+#     bw_img = Image.fromarray(bw_img)
+#     image = transform(img)
+#     bw_img = transform_bw(bw_img)
+#     # print(image.shape)
+#     gray_scale_img = bw_img # to_grayscale(image)
+#     # calcuating the cubical complex
+#     cubical_complex = gd.CubicalComplex(dimensions=gray_scale_img.shape, top_dimensional_cells=gray_scale_img.flatten())
+#     # Calculating persistance
+#     diag = cubical_complex.persistence()
+#     # Calculating BettiCurve
+#     PI = gd.representations.PersistenceImage(bandwidth=0.05,resolution=[64,64],weight=lambda x: x[1]**2, im_range=[0,0.6,0,0.6])
+
+#     #This is created, because of the error caused by the  [x,+inf] persistant interval (connected components)
+#     if args.topodim_concat:
+#         PI_0 = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(0)[:-1]])
+#         L_t_0 = torch.tensor(PI_0,dtype=torch.float)
+#         PI_1 = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(1)])
+#         L_t_1 = torch.tensor(PI_1,dtype=torch.float)
+#         L_t = torch.cat([L_t_0,L_t_1],dim=1)
+
+#     elif args.topodim == 0:
+#         PI = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)[:-1]])
+#         L_t = torch.tensor(PI,dtype=torch.float)
+
+#     elif args.topodim == 1:
+#         PI = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)])
+#         L_t = torch.tensor(PI,dtype=torch.float)
+
+
+
+#     return image, L_t
+
+
+# def process_img_topo_pi_img(data, to_grayscale = transforms.Grayscale(num_output_channels=1)): #Processing to Persistant images
+#     #Grayscale using provided function
+
+
+#     transform=transforms.Compose(
+#         [transforms.ToTensor(),
+#             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+#     #This transform is for the augmentation methods
+
+#     # transforms = v2.Compose([
+#     #     v2.RandomResizedCrop(size=(224, 224), antialias=True),
+#     #     v2.RandomHorizontalFlip(p=0.5),
+#     #     v2.ToDtype(torch.float32, scale=True),
+#     #     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+#     #     ])
+
+#     # transform = transforms.Compose([
+#     #         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
+#     #         transforms.RandomCrop(32, padding=4), # Randomly crop the image with padding
+#     #         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+#     #         transforms.RandomRotation(15),        # Randomly rotate the image
+#     #         transforms.ToTensor(),                # Convert image to PyTorch tensor
+#     #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) # Normalize the image
+#     #     ])
+
+#     transform_bw=transforms.Compose(
+#             [transforms.ToTensor(),
+#                 transforms.Normalize(0.5, 0.5, 0.5)])
+
+#     bw_img = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
+#     img = Image.fromarray(data)
+#     bw_img = Image.fromarray(bw_img)
+#     image = transform(img)
+#     bw_img = transform_bw(bw_img)
+#     # print(image.shape)
+#     gray_scale_img = bw_img # to_grayscale(image)
+#     # calcuating the cubical complex
+#     cubical_complex = gd.CubicalComplex(dimensions=gray_scale_img.shape, top_dimensional_cells=gray_scale_img.flatten())
+#     # Calculating persistance
+#     diag = cubical_complex.persistence()
+#     # Calculating BettiCurve
+#     PI = gd.representations.PersistenceImage(bandwidth=0.05,resolution=[64,64],weight=lambda x: x[1]**2, im_range=[0,0.6,0,0.6])
+
+#     #For the Persistent Images, the concat output gives 2 images - a simple solution
+#     if args.topodim_concat:
+#         PI_0 = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(0)[:-1]])
+#         L_t_0 = torch.tensor(PI_0,dtype=torch.float)
+#         PI_1 = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(1)])
+#         L_t_1 = torch.tensor(PI_1,dtype=torch.float)
+#         L_t = (L_t_0,L_t_1)
+
+#     elif args.topodim == 0:
+#         PI = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)[:-1]])
+#         L_t = torch.tensor(PI,dtype=torch.float).reshape([1,64,64])
+
+#     elif args.topodim == 1:
+#         PI = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)])
+#         L_t = torch.tensor(PI,dtype=torch.float).reshape([1,64,64])
+
+
+
+#     return image, L_t
+
+# def process_data_topo(dataset, train_set = True, from_train = None):
+#     data = dataset.data
+
+#     data_len = data.shape[0]
+
+#     if args.tv == 'land':
+#         print('Processing data using landscape vectorization')
+#         if args.cores <= 1:
+#             results = []
+#             print('processing using a single core - NO multiprocessing')
+#             for sample in tqdm(data):
+#                 results.append(process_img_topo_land(sample))
+#         else:
+#             with Pool(args.cores) as pool: #multiprocessing the topological data transform
+#                 results = list(tqdm(pool.imap(process_img_topo_land,data),total=len(data)))
+
+
+#     elif args.tv == 'bc':
+#         print('Processing data using betti curve vectorization')
+
+#         if args.cores <= 1:
+#             results = []
+#             print('processing using a single core - NO multiprocessing')
+#             for sample in tqdm(data):
+#                 results.append(process_img_topo_betti_curve(sample))
+#         else:
+#             with Pool(args.cores) as pool: #multiprocessing the topological data transform
+#                 results = list(tqdm(pool.imap(process_img_topo_betti_curve,data),total=len(data)))
+
+#     elif args.tv == 'pi_v':
+#         print('Processing data using PI (Vector)')
+
+#         if args.cores <= 1:
+#             results = []
+#             print('processing using a single core - NO multiprocessing')
+#             for sample in tqdm(data):
+#                 results.append(process_img_topo_pi_v(sample))
+#         else:
+#             with Pool(args.cores) as pool: #multiprocessing the topological data transform
+#                 results = list(tqdm(pool.imap(process_img_topo_pi_v,data),total=len(data)))
+
+#     elif args.tv == 'pi_img':
+#         print('Processing data using PI (Image)')
+
+#         if args.cores <= 1:
+#             results = []
+#             print('processing using a single core - NO multiprocessing')
+#             for sample in tqdm(data):
+#                 results.append(process_img_topo_pi_img(sample))
+#         else:
+#             with Pool(args.cores) as pool: #multiprocessing the topological data transform
+#                 results = list(tqdm(pool.imap(process_img_topo_pi_img,data),total=len(data)))
+
+#     elif args.tv == 'silh':
+#         print('Processing data using Silhouette vectorization')
+
+#         if args.cores <= 1:
+#             results = []
+#             print('processing using a single core - NO multiprocessing')
+#             for sample in tqdm(data):
+#                 results.append(process_img_topo_silh(sample))
+#         else:
+#             with Pool(args.cores) as pool: #multiprocessing the topological data transform
+#                 results = list(tqdm(pool.imap(process_img_topo_silh,data),total=len(data)))
+
+#     else:
+#         raise('Error - invalid topological vectorization method')
+
+
+
+#     tmp_topo_data = [item[1] for item in results]
+#     tensor_topo_data = torch.cat(tmp_topo_data,dim=0)
+
+#     if from_train is not None:
+#         max = from_train[0]
+#         min = from_train[1]
+#     else:
+#         min = tensor_topo_data.min()
+#         max = tensor_topo_data.max()
+
+#     new_res = []
+#     for img,topo in results:
+#         stand_topo = (topo - min)/(max-min)
+#         new_res.append((img,stand_topo))
+#     results = new_res
+
+#     if train_set:
+#         return results, (max,min)
+
+#     return results
 
 
 
