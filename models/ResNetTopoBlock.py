@@ -25,6 +25,7 @@ import json
 
 
 
+
 #The argparser part
 argparser = argparse.ArgumentParser(fromfile_prefix_chars='@')
 argparser.add_argument("--lr", default=0.0003, type=float, help="Meta-learning rate (used on query set - potentially acoss tasks)")
@@ -47,6 +48,12 @@ argparser.add_argument("--name", default="", type=str, help="Name of the run")
 argparser.add_argument("--tb_add_x", default=False, action="store_true", help="Add the x into the topological resnet when using PIBlock")
 
 args = argparser.parse_args()
+
+
+
+model_saving_path = 'models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
+tensor_board_path = 'runs/' + args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw
+
 
 if args.config:
     with open(args.config, "r") as f:

@@ -48,6 +48,11 @@ argparser.add_argument("--tb_add_x", default=False, action="store_true", help="A
 
 args = argparser.parse_args()
 
+
+
+model_saving_path = 'models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
+tensor_board_path = 'runs/' + args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw
+
 if args.config:
     with open(args.config, "r") as f:
         config = json.load(f)

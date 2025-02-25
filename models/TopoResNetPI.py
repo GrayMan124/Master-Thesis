@@ -50,6 +50,9 @@ args = argparser.parse_args()
 
 
 
+model_saving_path = 'models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
+tensor_board_path = 'runs/' + args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw
+
 def layer_from_config(layer_config):
     layer_type = layer_config["type"]
     params = {k: v for k, v in layer_config.items() if k != "type"}
@@ -66,6 +69,7 @@ if args.config:
     hidden_size = config['hidden_size']
 else:
     hidden_size = 64
+
 
 
 #Residual block
