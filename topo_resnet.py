@@ -142,65 +142,65 @@ class MyDataset(Dataset):
 
 
 
-class PIBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, identity_downsample=None, stride=1):
-        super(PIBlock, self).__init__()
+# class PIBlock(nn.Module):
+#     def __init__(self, in_channels, out_channels, identity_downsample=None, stride=1):
+#         super(PIBlock, self).__init__()
 
-        #Base ResNet Block
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
-        self.bn1 = nn.BatchNorm2d(out_channels)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
-        self.bn2 = nn.BatchNorm2d(out_channels)
-        self.relu = nn.ReLU()
-        self.identity_downsample = identity_downsample
+#         #Base ResNet Block
+#         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
+#         self.bn1 = nn.BatchNorm2d(out_channels)
+#         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
+#         self.bn2 = nn.BatchNorm2d(out_channels)
+#         self.relu = nn.ReLU()
+#         self.identity_downsample = identity_downsample
 
-        #Topo Section
-        self.conv1_t = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
-        self.bn1_t = nn.BatchNorm2d(out_channels)
-        self.conv2_t = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
-        self.bn2_t = nn.BatchNorm2d(out_channels)
-        self.relu_t = nn.ReLU()
-        self.identity_downsample_t = identity_downsample
-
-
+#         #Topo Section
+#         self.conv1_t = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
+#         self.bn1_t = nn.BatchNorm2d(out_channels)
+#         self.conv2_t = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
+#         self.bn2_t = nn.BatchNorm2d(out_channels)
+#         self.relu_t = nn.ReLU()
+#         self.identity_downsample_t = identity_downsample
 
 
-    def forward(self, x):
-        x,topo = x
-        identity = x
-        identity_t = topo
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.conv2(x)
-        x = self.bn2(x)
-
-        #Topological information
-        topo = self.conv1_t(topo)
-        topo = self.relu_t(topo)
-        topo = self.bn1_t(topo)
-        topo = self.conv2_t(topo)
-        topo = self.bn2_t(topo)
-
-        if self.identity_downsample is not None:
-            identity = self.identity_downsample(identity)
 
 
-        if self.identity_downsample is not None:
-            identity_t = self.identity_downsample_t(identity_t)
+#     def forward(self, x):
+#         x,topo = x
+#         identity = x
+#         identity_t = topo
+#         x = self.conv1(x)
+#         x = self.bn1(x)
+#         x = self.relu(x)
+#         x = self.conv2(x)
+#         x = self.bn2(x)
 
-        x += identity
-        x += identity_t
+#         #Topological information
+#         topo = self.conv1_t(topo)
+#         topo = self.relu_t(topo)
+#         topo = self.bn1_t(topo)
+#         topo = self.conv2_t(topo)
+#         topo = self.bn2_t(topo)
+
+#         if self.identity_downsample is not None:
+#             identity = self.identity_downsample(identity)
 
 
-        topo += identity_t
+#         if self.identity_downsample is not None:
+#             identity_t = self.identity_downsample_t(identity_t)
 
-        #Adding the
-        if args.tb_add_x:
-            topo+=identity
+#         x += identity
+#         x += identity_t
 
-        x = self.relu(x)
-        return x, topo
+
+#         topo += identity_t
+
+#         #Adding the
+#         if args.tb_add_x:
+#             topo+=identity
+
+#         x = self.relu(x)
+#         return x, topo
 
 
 
@@ -217,89 +217,89 @@ class LayerTopoBlock(nn.Module):
         x,_ = self.block2((x,topo))
         return x
 
-class LayerPIBlock(nn.Module):
+# class LayerPIBlock(nn.Module):
 
-    def __init__(self,in_channels, out_channels, identity_downsample, stride):
-        super(LayerPIBlock,self).__init__()
-        self.block1 = PIBlock(in_channels, out_channels,identity_downsample, stride=stride)
-        self.block2 = PIBlock(out_channels, out_channels)
+#     def __init__(self,in_channels, out_channels, identity_downsample, stride):
+#         super(LayerPIBlock,self).__init__()
+#         self.block1 = PIBlock(in_channels, out_channels,identity_downsample, stride=stride)
+#         self.block2 = PIBlock(out_channels, out_channels)
 
-    def forward(self,x):
-        x,topo = x
-        x,topo= self.block1((x,topo))
-        x,topo = self.block2((x,topo))
-        return x, topo
+#     def forward(self,x):
+#         x,topo = x
+#         x,topo= self.block1((x,topo))
+#         x,topo = self.block2((x,topo))
+#         return x, topo
 
 #Residual block
 
-class TopoBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, identity_downsample=None, topo_size_in = hidden_size, stride=1):
-        super(TopoBlock, self).__init__()
+# class TopoBlock(nn.Module):
+#     def __init__(self, in_channels, out_channels, identity_downsample=None, topo_size_in = hidden_size, stride=1):
+#         super(TopoBlock, self).__init__()
 
-        if args.tbs == 'small':
-            self.topo_enc = nn.Sequential(nn.Linear(topo_size_in,64),
-                nn.ReLU(),
-                nn.Linear(64,out_channels)
-                )
-        elif args.tbs == 'normal':
-            self.topo_enc = nn.Sequential(nn.Linear(topo_size_in,64),
-                nn.ReLU(),
-                nn.Linear(64,32),
-                nn.ReLU(),
-                nn.Linear(32,out_channels)
-                )
-        elif args.tbs == 'large':
-            self.topo_enc = nn.Sequential(nn.Linear(topo_size_in,128),
-                nn.ReLU(),
-                nn.Linear(128,64),
-                nn.ReLU(),
-                nn.Linear(64,out_channels)
-                )
+#         if args.tbs == 'small':
+#             self.topo_enc = nn.Sequential(nn.Linear(topo_size_in,64),
+#                 nn.ReLU(),
+#                 nn.Linear(64,out_channels)
+#                 )
+#         elif args.tbs == 'normal':
+#             self.topo_enc = nn.Sequential(nn.Linear(topo_size_in,64),
+#                 nn.ReLU(),
+#                 nn.Linear(64,32),
+#                 nn.ReLU(),
+#                 nn.Linear(32,out_channels)
+#                 )
+#         elif args.tbs == 'large':
+#             self.topo_enc = nn.Sequential(nn.Linear(topo_size_in,128),
+#                 nn.ReLU(),
+#                 nn.Linear(128,64),
+#                 nn.ReLU(),
+#                 nn.Linear(64,out_channels)
+#                 )
 
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
-        self.bn1 = nn.BatchNorm2d(out_channels)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
-        self.bn2 = nn.BatchNorm2d(out_channels)
-        self.relu = nn.ReLU()
-        self.identity_downsample = identity_downsample
+#         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
+#         self.bn1 = nn.BatchNorm2d(out_channels)
+#         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
+#         self.bn2 = nn.BatchNorm2d(out_channels)
+#         self.relu = nn.ReLU()
+#         self.identity_downsample = identity_downsample
 
-    def forward(self, x):
+#     def forward(self, x):
 
-        x, topo = x
-        identity = x
-        topo_in = self.topo_enc(topo).squeeze(1)
+#         x, topo = x
+#         identity = x
+#         topo_in = self.topo_enc(topo).squeeze(1)
 
-        topo_expand =  topo_in[:, :, None, None]
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.conv2(x)
-        x = self.bn2(x)
-        if self.identity_downsample is not None:
-            identity = self.identity_downsample(identity)
-        x += identity
-        x += topo_expand
-        x = self.relu(x)
-        return x,topo_in
+#         topo_expand =  topo_in[:, :, None, None]
+#         x = self.conv1(x)
+#         x = self.bn1(x)
+#         x = self.relu(x)
+#         x = self.conv2(x)
+#         x = self.bn2(x)
+#         if self.identity_downsample is not None:
+#             identity = self.identity_downsample(identity)
+#         x += identity
+#         x += topo_expand
+#         x = self.relu(x)
+#         return x,topo_in
 
-class TopoIMG_transModel(nn.Module): #This model is specificaly designed to transform the input of 1x64x64 into 3x32x32 (usable in topoblock configugartion)
+# class TopoIMG_transModel(nn.Module): #This model is specificaly designed to transform the input of 1x64x64 into 3x32x32 (usable in topoblock configugartion)
 
-    def __init__(self,tmp): #why is tmp here KEKW
-        super(TopoIMG_transModel,self).__init__()
+#     def __init__(self,tmp): #why is tmp here KEKW
+#         super(TopoIMG_transModel,self).__init__()
 
-        #This implementation gives as output 3x32x32 (given an input of 1x64x64)
+#         #This implementation gives as output 3x32x32 (given an input of 1x64x64)
 
-        self.conv_network = nn.Sequential(
-            nn.Conv2d(in_channels = 1 ,out_channels = 16, kernel_size = (3, 3), stride=2,padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels = 16 ,out_channels = 32, kernel_size = (3, 3), stride=1,padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels = 32 ,out_channels = 3, kernel_size = (3, 3), stride=1,padding=1),
-            nn.ReLU()
-        )
+#         self.conv_network = nn.Sequential(
+#             nn.Conv2d(in_channels = 1 ,out_channels = 16, kernel_size = (3, 3), stride=2,padding=1),
+#             nn.ReLU(),
+#             nn.Conv2d(in_channels = 16 ,out_channels = 32, kernel_size = (3, 3), stride=1,padding=1),
+#             nn.ReLU(),
+#             nn.Conv2d(in_channels = 32 ,out_channels = 3, kernel_size = (3, 3), stride=1,padding=1),
+#             nn.ReLU()
+#         )
 
-    def forward(self,x):
-        return self.conv_network(x)
+#     def forward(self,x):
+#         return self.conv_network(x)
 
 # class TopoIMG_ResNet(nn.Module): #this is based on the resnet implementation on ResNet (using ResNet as the base to process the images)
 
@@ -614,146 +614,132 @@ class TopoIMG_transModel(nn.Module): #This model is specificaly designed to tran
 #         )
 
 
-class ResNet_18_PIBlock(nn.Module):
+# class ResNet_18_PIBlock(nn.Module):
 
-    def __init__(self, image_channels, num_classes,device):
+#     def __init__(self, image_channels, num_classes,device):
 
-        super(ResNet_18_PIBlock, self).__init__()
-        self.in_channels = 64
-        self.device = device
+#         super(ResNet_18_PIBlock, self).__init__()
+#         self.in_channels = 64
+#         self.device = device
 
-        self.conv1 = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
-        self.bn1 = nn.BatchNorm2d(64)
-        self.relu = nn.ReLU()
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-
-
+#         self.conv1 = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
+#         self.bn1 = nn.BatchNorm2d(64)
+#         self.relu = nn.ReLU()
+#         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
 
-        #topological section
-        self.topo_emb = TopoIMG_transModel(0) #Why is tmp there? KEKW
-        self.conv1_t = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
-        self.bn1_t = nn.BatchNorm2d(64)
-        self.relu_t = nn.ReLU()
-        self.maxpool_t = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-
-        #resnet layers
-        self.layer1 = self.__make_layer(64, 64, stride=1)
-        self.layer2 = self.__make_layer(64, 128, stride=2)
-        self.layer3 = self.__make_layer(128, 256, stride=2)
-        self.layer4 = self.__make_layer(256, 512, stride=2)
-
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.avgpool_t = nn.AdaptiveAvgPool2d((1, 1))
-
-        # There is no need for topo net
-
-        # if args.config: #if the config was set
-        #     layers = [layer_from_config(layer_config) for layer_config in config["topo_net"]]
-        #     self.topo_net = nn.Sequential(*layers)
-        # else:
-        #     self.topo_net = nn.Sequential(
-        #         nn.Linear(500,128),
-        #         nn.ReLU(),
-        #         nn.Linear(128,128),
-        #         nn.ReLU(),
-        #         nn.Linear(128,64),
-        #         nn.ReLU()
-        #     )
-        if args.config:
-            layers = [layer_from_config(layer_config) for layer_config in config["res_net_fc"]]
-            self.res_net_fc = nn.Sequential(*layers)
-        else:
-            self.res_net_fc = nn.Sequential(
-                nn.Linear(512, 128),
-                nn.ReLU(),
-                nn.Linear(128,64),
-                nn.ReLU()
-            )
-
-        #Setup for the res_net_fc_topo
-        if args.config:
-            layers = [layer_from_config(layer_config) for layer_config in config["res_net_fc_topo"]]
-            self.res_net_fc_topo = nn.Sequential(*layers)
-        else:
-            self.res_net_fc_topo = nn.Sequential(
-                nn.Linear(512, 128),
-                nn.ReLU(),
-                nn.Linear(128,64),
-                nn.ReLU()
-            )
-        if args.config:
-            layers = [layer_from_config(layer_config) for layer_config in config["fc"]]
-            self.fc = nn.Sequential(*layers)
-        else:
-            self.fc = nn.Sequential(nn.Linear(128,64),
-                nn.ReLU(),
-                nn.Linear(64,32),
-                nn.ReLU(),
-                nn.Linear(32,num_classes),
-                nn.Softmax()
-            )
-
-    def __make_layer(self, in_channels, out_channels, stride):
-
-        identity_downsample = None
-        if stride != 1:
-            identity_downsample = self.identity_downsample(in_channels, out_channels)
 
 
-        return LayerPIBlock(in_channels, out_channels, identity_downsample, stride)
+#         #topological section
+#         self.topo_emb = TopoIMG_transModel(0) #Why is tmp there? KEKW
+#         self.conv1_t = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
+#         self.bn1_t = nn.BatchNorm2d(64)
+#         self.relu_t = nn.ReLU()
+#         self.maxpool_t = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+
+#         #resnet layers
+#         self.layer1 = self.__make_layer(64, 64, stride=1)
+#         self.layer2 = self.__make_layer(64, 128, stride=2)
+#         self.layer3 = self.__make_layer(128, 256, stride=2)
+#         self.layer4 = self.__make_layer(256, 512, stride=2)
+
+#         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+#         self.avgpool_t = nn.AdaptiveAvgPool2d((1, 1))
+
+#         if args.config:
+#             layers = [layer_from_config(layer_config) for layer_config in config["res_net_fc"]]
+#             self.res_net_fc = nn.Sequential(*layers)
+#         else:
+#             self.res_net_fc = nn.Sequential(
+#                 nn.Linear(512, 128),
+#                 nn.ReLU(),
+#                 nn.Linear(128,64),
+#                 nn.ReLU()
+#             )
+
+#         #Setup for the res_net_fc_topo
+#         if args.config:
+#             layers = [layer_from_config(layer_config) for layer_config in config["res_net_fc_topo"]]
+#             self.res_net_fc_topo = nn.Sequential(*layers)
+#         else:
+#             self.res_net_fc_topo = nn.Sequential(
+#                 nn.Linear(512, 128),
+#                 nn.ReLU(),
+#                 nn.Linear(128,64),
+#                 nn.ReLU()
+#             )
+#         if args.config:
+#             layers = [layer_from_config(layer_config) for layer_config in config["fc"]]
+#             self.fc = nn.Sequential(*layers)
+#         else:
+#             self.fc = nn.Sequential(nn.Linear(128,64),
+#                 nn.ReLU(),
+#                 nn.Linear(64,32),
+#                 nn.ReLU(),
+#                 nn.Linear(32,num_classes),
+#                 nn.Softmax()
+#             )
+
+#     def __make_layer(self, in_channels, out_channels, stride):
+
+#         identity_downsample = None
+#         if stride != 1:
+#             identity_downsample = self.identity_downsample(in_channels, out_channels)
 
 
-    def forward(self, x):
-        #suppose we do have the topo info in the dataset
-
-        x, topo = x
-
-        x = x.to(self.device)
-        topo = topo.to(self.device)
-
-        x = transforms.functional.resize(x, (112, 112))
-        x_topo = self.topo_emb(topo)
-
-        x_topo = transforms.functional.resize(x_topo, (112, 112))
-
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
-
-        x_topo = self.conv1_t(x_topo)
-        x_topo = self.bn1_t(x_topo)
-        x_topo = self.relu_t(x_topo)
-        x_topo = self.maxpool_t(x_topo)
+#         return LayerPIBlock(in_channels, out_channels, identity_downsample, stride)
 
 
-        x,x_topo = self.layer1((x,x_topo))
+#     def forward(self, x):
+#         #suppose we do have the topo info in the dataset
 
-        x,x_topo = self.layer2((x,x_topo))
-        x,x_topo = self.layer3((x,x_topo))
-        x,x_topo = self.layer4((x,x_topo))
+#         x, topo = x
 
-        x = self.avgpool(x)
-        x = x.view(x.shape[0], -1)
-        x = self.res_net_fc(x)
+#         x = x.to(self.device)
+#         topo = topo.to(self.device)
 
-        x_topo = self.avgpool_t(x_topo)
-        x_topo = x_topo.view(x_topo.shape[0], -1)
-        x_topo = self.res_net_fc_topo(x_topo)
+#         x = transforms.functional.resize(x, (112, 112))
+#         x_topo = self.topo_emb(topo)
 
-        x = torch.cat([x,x_topo],dim=1)
+#         x_topo = transforms.functional.resize(x_topo, (112, 112))
 
-        x = self.fc(x)
+#         x = self.conv1(x)
+#         x = self.bn1(x)
+#         x = self.relu(x)
+#         x = self.maxpool(x)
 
-        return x
+#         x_topo = self.conv1_t(x_topo)
+#         x_topo = self.bn1_t(x_topo)
+#         x_topo = self.relu_t(x_topo)
+#         x_topo = self.maxpool_t(x_topo)
 
-    def identity_downsample(self, in_channels, out_channels):
 
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(out_channels)
-        )
+#         x,x_topo = self.layer1((x,x_topo))
+
+#         x,x_topo = self.layer2((x,x_topo))
+#         x,x_topo = self.layer3((x,x_topo))
+#         x,x_topo = self.layer4((x,x_topo))
+
+#         x = self.avgpool(x)
+#         x = x.view(x.shape[0], -1)
+#         x = self.res_net_fc(x)
+
+#         x_topo = self.avgpool_t(x_topo)
+#         x_topo = x_topo.view(x_topo.shape[0], -1)
+#         x_topo = self.res_net_fc_topo(x_topo)
+
+#         x = torch.cat([x,x_topo],dim=1)
+
+#         x = self.fc(x)
+
+#         return x
+
+#     def identity_downsample(self, in_channels, out_channels):
+
+#         return nn.Sequential(
+#             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1),
+#             nn.BatchNorm2d(out_channels)
+#         )
 
 class ResNet_18_Topo_2dim(nn.Module): #This model is for the input that consists of two topological dimensions that are concatenated (but we want to split them)
 
@@ -887,110 +873,110 @@ class ResNet_18_Topo_2dim(nn.Module): #This model is for the input that consists
         )
 
 
-class ResNet_18_Topo_Block(nn.Module):
+# class ResNet_18_Topo_Block(nn.Module):
 
-    def __init__(self, image_channels, num_classes,device):
+#     def __init__(self, image_channels, num_classes,device):
 
-        super(ResNet_18_Topo_Block, self).__init__()
-        self.in_channels = 64
-        self.conv1 = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
-        self.bn1 = nn.BatchNorm2d(64)
-        self.relu = nn.ReLU()
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.device = device
+#         super(ResNet_18_Topo_Block, self).__init__()
+#         self.in_channels = 64
+#         self.conv1 = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
+#         self.bn1 = nn.BatchNorm2d(64)
+#         self.relu = nn.ReLU()
+#         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+#         self.device = device
 
-        #resnet layers
-        self.layer1 = self.__make_layer(64, 64, stride=1)
-        self.layer2 = self.__make_layer(64, 128, stride=2)
-        self.layer3 = self.__make_layer(128, 256, stride=2)
-        self.layer4 = self.__make_layer(256, 512, stride=2)
+#         #resnet layers
+#         self.layer1 = self.__make_layer(64, 64, stride=1)
+#         self.layer2 = self.__make_layer(64, 128, stride=2)
+#         self.layer3 = self.__make_layer(128, 256, stride=2)
+#         self.layer4 = self.__make_layer(256, 512, stride=2)
 
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-
-
-
-        if args.config: #if the config was set
-            layers = [layer_from_config(layer_config) for layer_config in config["topo_net"]]
-            self.topo_net = nn.Sequential(*layers)
-        else:
-            self.topo_net = nn.Sequential(
-                nn.Linear(500,128),
-                nn.ReLU(),
-                nn.Linear(128,128),
-                nn.ReLU(),
-                nn.Linear(128,64),
-                nn.ReLU()
-            )
-        if args.config:
-            layers = [layer_from_config(layer_config) for layer_config in config["res_net_fc"]]
-            self.res_net_fc = nn.Sequential(*layers)
-        else:
-            self.res_net_fc = nn.Sequential(
-                nn.Linear(512, 128),
-                nn.ReLU(),
-                nn.Linear(128,64),
-                nn.ReLU()
-            )
-        if args.config:
-            layers = [layer_from_config(layer_config) for layer_config in config["fc"]]
-            self.fc = nn.Sequential(*layers)
-        else:
-            self.fc = nn.Sequential(nn.Linear(128,64),
-                nn.ReLU(),
-                nn.Linear(64,32),
-                nn.ReLU(),
-                nn.Linear(32,num_classes),
-                nn.Softmax()
-            )
-
-    def __make_layer(self, in_channels, out_channels, stride):
-
-        identity_downsample = None
-        if stride != 1:
-            identity_downsample = self.identity_downsample(in_channels, out_channels)
+#         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
 
-        return LayerTopoBlock(in_channels, out_channels, identity_downsample, stride)
+
+#         if args.config: #if the config was set
+#             layers = [layer_from_config(layer_config) for layer_config in config["topo_net"]]
+#             self.topo_net = nn.Sequential(*layers)
+#         else:
+#             self.topo_net = nn.Sequential(
+#                 nn.Linear(500,128),
+#                 nn.ReLU(),
+#                 nn.Linear(128,128),
+#                 nn.ReLU(),
+#                 nn.Linear(128,64),
+#                 nn.ReLU()
+#             )
+#         if args.config:
+#             layers = [layer_from_config(layer_config) for layer_config in config["res_net_fc"]]
+#             self.res_net_fc = nn.Sequential(*layers)
+#         else:
+#             self.res_net_fc = nn.Sequential(
+#                 nn.Linear(512, 128),
+#                 nn.ReLU(),
+#                 nn.Linear(128,64),
+#                 nn.ReLU()
+#             )
+#         if args.config:
+#             layers = [layer_from_config(layer_config) for layer_config in config["fc"]]
+#             self.fc = nn.Sequential(*layers)
+#         else:
+#             self.fc = nn.Sequential(nn.Linear(128,64),
+#                 nn.ReLU(),
+#                 nn.Linear(64,32),
+#                 nn.ReLU(),
+#                 nn.Linear(32,num_classes),
+#                 nn.Softmax()
+#             )
+
+#     def __make_layer(self, in_channels, out_channels, stride):
+
+#         identity_downsample = None
+#         if stride != 1:
+#             identity_downsample = self.identity_downsample(in_channels, out_channels)
 
 
-    def forward(self, x):
-        #suppose we do have the topo info in the dataset
+#         return LayerTopoBlock(in_channels, out_channels, identity_downsample, stride)
 
-        x, topo = x
 
-        x = x.to('cuda:0')
-        topo = topo.to('cuda:0')
+#     def forward(self, x):
+#         #suppose we do have the topo info in the dataset
 
-        x = transforms.functional.resize(x, (112, 112))
-        x_topo = self.topo_net(topo)
-        x_topo = x_topo.squeeze(1)
+#         x, topo = x
 
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
+#         x = x.to('cuda:0')
+#         topo = topo.to('cuda:0')
 
-        x = self.layer1((x,x_topo))
+#         x = transforms.functional.resize(x, (112, 112))
+#         x_topo = self.topo_net(topo)
+#         x_topo = x_topo.squeeze(1)
 
-        x = self.layer2((x,x_topo))
-        x = self.layer3((x,x_topo))
-        x = self.layer4((x,x_topo))
+#         x = self.conv1(x)
+#         x = self.bn1(x)
+#         x = self.relu(x)
+#         x = self.maxpool(x)
 
-        x = self.avgpool(x)
-        x = x.view(x.shape[0], -1)
-        x = self.res_net_fc(x)
-        #here x = 512, batch size
+#         x = self.layer1((x,x_topo))
 
-        x = torch.cat([x,x_topo],dim=1)
-        x = self.fc(x)
-        return x
+#         x = self.layer2((x,x_topo))
+#         x = self.layer3((x,x_topo))
+#         x = self.layer4((x,x_topo))
 
-    def identity_downsample(self, in_channels, out_channels):
+#         x = self.avgpool(x)
+#         x = x.view(x.shape[0], -1)
+#         x = self.res_net_fc(x)
+#         #here x = 512, batch size
 
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(out_channels)
-        )
+#         x = torch.cat([x,x_topo],dim=1)
+#         x = self.fc(x)
+#         return x
+
+#     def identity_downsample(self, in_channels, out_channels):
+
+#         return nn.Sequential(
+#             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1),
+#             nn.BatchNorm2d(out_channels)
+#         )
 
 
 #Main function
