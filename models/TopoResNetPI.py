@@ -60,6 +60,12 @@ def layer_from_config(layer_config):
     else:
         raise ValueError(f"Layer type {layer_type} is not supported.")
 
+if args.config:
+    with open(args.config, "r") as f:
+        config = json.load(f)
+    hidden_size = config['hidden_size']
+else:
+    hidden_size = 64
 
 
 #Residual block

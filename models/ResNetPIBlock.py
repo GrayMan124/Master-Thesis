@@ -48,7 +48,13 @@ argparser.add_argument("--tb_add_x", default=False, action="store_true", help="A
 
 args = argparser.parse_args()
 
-
+if args.config:
+    with open(args.config, "r") as f:
+        config = json.load(f)
+    hidden_size = config['hidden_size']
+else:
+    hidden_size = 64
+    
 
 def layer_from_config(layer_config):
     layer_type = layer_config["type"]
