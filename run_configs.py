@@ -15,4 +15,4 @@ for i in range(args.start,19):
 
 for config in configs:
     print(f"Running with config: {config}")
-    subprocess.run(["python", "topo_resnet.py", f"@{config}"])
+    subprocess.run(["python", "main.py", f"@{config}"])
