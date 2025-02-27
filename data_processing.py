@@ -365,10 +365,10 @@ def process_img_topo_pi_img(data, to_grayscale = transforms.Grayscale(num_output
     #For the Persistent Images, the concat output gives 2 images - a simple solution
     if args.topodim_concat:
         PI_0 = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(0)[:-1]])
-        L_t_0 = torch.tensor(PI_0,dtype=torch.float)
+        L_t_0 = torch.tensor(PI_0,dtype=torch.float).reshape([1,64,64])
         PI_1 = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(1)])
-        L_t_1 = torch.tensor(PI_1,dtype=torch.float)
-        L_t = (L_t_0,L_t_1)
+        L_t_1 = torch.tensor(PI_1,dtype=torch.float).reshape([1,64,64])
+        L_t = torch.cat([L_t_0,L_t_1],dim = 0)
 
     elif args.topodim == 0:
         PI = PI.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)[:-1]])
