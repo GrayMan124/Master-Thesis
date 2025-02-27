@@ -45,9 +45,9 @@ argparser.add_argument("--num_workers", default=2, type=int, help="Number of wor
 argparser.add_argument("--config", default=None, type=str, help="Path to config file, containing the Nerual architectures")
 argparser.add_argument("--name", default="", type=str, help="Name of the run")
 argparser.add_argument("--tb_add_x", default=False, action="store_true", help="Add the x into the topological resnet when using PIBlock")
+argparser.add_argument("--tb_add_t", default=False, action="store_true", help="Add the topological out back into the topological resnet when using PIBlock")
 
 args = argparser.parse_args()
-
 
 
 model_saving_path = 'models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
@@ -96,69 +96,7 @@ class Block(nn.Module):
         x += identity
         x = self.relu(x)
         return x
-
-class TopoBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, identity_downsample=None, topo_size_in = hidden_size, stride=1):
-        super(TopoBlock, self).__init__()
-
-        if args.tbs == 'small':
-            self.topo_enc = nn.Sequential(nn.Linear(topo_size_in,64),
-                nn.ReLU(),
-                nn.Linear(64,out_channels)
-                )
-        elif args.tbs == 'normal':
-            self.topo_enc = nn.Sequential(nn.Linear(topo_size_in,64),
-                nn.ReLU(),
-                nn.Linear(64,32),
-                nn.ReLU(),
-                nn.Linear(32,out_channels)
-                )
-        elif args.tbs == 'large':
-            self.topo_enc = nn.Sequential(nn.Linear(topo_size_in,128),
-                nn.ReLU(),
-                nn.Linear(128,64),
-                nn.ReLU(),
-                nn.Linear(64,out_channels)
-                )
-
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
-        self.bn1 = nn.BatchNorm2d(out_channels)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
-        self.bn2 = nn.BatchNorm2d(out_channels)
-        self.relu = nn.ReLU()
-        self.identity_downsample = identity_downsample
-
-    def forward(self, x):
-
-        x, topo = x
-        identity = x
-        topo_in = self.topo_enc(topo).squeeze(1)
-
-        topo_expand =  topo_in[:, :, None, None]
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.conv2(x)
-        x = self.bn2(x)
-        if self.identity_downsample is not None:
-            identity = self.identity_downsample(identity)
-        x += identity
-        x += topo_expand
-        x = self.relu(x)
-        return x,topo_in
-
-class LayerTopoBlock(nn.Module):
-
-    def __init__(self,in_channels, out_channels, identity_downsample, stride):
-        super(LayerTopoBlock,self).__init__()
-        self.block1 = TopoBlock(in_channels, out_channels,identity_downsample, hidden_size, stride=stride)
-        self.block2 = TopoBlock(out_channels, out_channels)
-
-    def forward(self,x):
-        x,topo = x
-        x,_ = self.block1((x,topo))
-        x,_ = self.block2((x,topo))
-        return x
+    
 
 class LayerPIBlock(nn.Module):
 
@@ -186,11 +124,31 @@ class PIBlock(nn.Module):
         self.identity_downsample = identity_downsample
 
         #Topo Section
-        self.conv1_t = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
-        self.bn1_t = nn.BatchNorm2d(out_channels)
-        self.conv2_t = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
-        self.bn2_t = nn.BatchNorm2d(out_channels)
-        self.relu_t = nn.ReLU()
+        if args.tbs == 'small':
+            self.topo_net = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1),
+                                nn.BatchNorm2d(out_channels),
+                                nn.ReLU()    
+                                    )
+        elif args.tbs == 'normal':
+            self.topo_net = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1),
+                                nn.BatchNorm2d(out_channels),
+                                nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+                                nn.BatchNorm2d(out_channels),
+                                nn.ReLU()    
+                                    )
+        elif args.tbs == 'large':
+            self.topo_net = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1),
+                                nn.BatchNorm2d(out_channels),
+                                nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+                                nn.BatchNorm2d(out_channels),
+                                nn.ReLU()    
+                                    )
+        # self.conv1_t = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
+        # self.bn1_t = nn.BatchNorm2d(out_channels)
+        # # self.conv2_t = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
+        # # self.bn2_t = nn.BatchNorm2d(out_channels)
+        # self.relu_t = nn.ReLU()
+        
         self.identity_downsample_t = identity_downsample
 
 
@@ -207,11 +165,12 @@ class PIBlock(nn.Module):
         x = self.bn2(x)
 
         #Topological information
-        topo = self.conv1_t(topo)
-        topo = self.relu_t(topo)
-        topo = self.bn1_t(topo)
-        topo = self.conv2_t(topo)
-        topo = self.bn2_t(topo)
+        # topo = self.conv1_t(topo)
+        # topo = self.relu_t(topo)
+        # topo = self.bn1_t(topo)
+        # # topo = self.conv2_t(topo)
+        # topo = self.bn2_t(topo)
+        topo = self.topo_net(topo)
 
         if self.identity_downsample is not None:
             identity = self.identity_downsample(identity)
@@ -223,8 +182,8 @@ class PIBlock(nn.Module):
         x += identity
         x += identity_t
 
-
-        topo += identity_t
+        if args.tb_add_t:
+            topo += identity_t
 
         #Adding the
         if args.tb_add_x:
@@ -240,14 +199,46 @@ class TopoIMG_transModel(nn.Module): #This model is specificaly designed to tran
 
         #This implementation gives as output 3x32x32 (given an input of 1x64x64)
 
-        self.conv_network = nn.Sequential(
-            nn.Conv2d(in_channels = 1 ,out_channels = 16, kernel_size = (3, 3), stride=2,padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels = 16 ,out_channels = 32, kernel_size = (3, 3), stride=1,padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels = 32 ,out_channels = 3, kernel_size = (3, 3), stride=1,padding=1),
-            nn.ReLU()
-        )
+        #TODO: Add some options here as well 
+        if args.topodim_concat:
+            in_ch = 2
+        else:
+            in_ch = 1
+        
+
+        #TODO: Check if this actually works TBH KEKW
+        
+        if args.tbs == 'small':
+            self.conv_network = nn.Sequential(
+                nn.Conv2d(in_channels = in_ch ,out_channels = 16, kernel_size = (5, 5), stride=2,padding=1),
+                nn.ReLU(),
+                nn.Conv2d(in_channels = 16 ,out_channels = 32, kernel_size = (4, 4), stride=1,padding=1),
+                nn.ReLU(),
+                nn.Conv2d(in_channels = 32 ,out_channels = 64, kernel_size = (5, 5), stride=1,padding=1),
+                nn.ReLU()
+            )    
+
+        elif args.tbs == 'normal':
+            self.conv_network = nn.Sequential(
+                nn.Conv2d(in_channels = in_ch ,out_channels = 28, kernel_size = (5, 5), stride=2,padding=1),
+                nn.ReLU(),
+                nn.Conv2d(in_channels = 28 ,out_channels = 48, kernel_size = (4, 4), stride=1,padding=1),
+                nn.ReLU(),
+                nn.Conv2d(in_channels = 48 ,out_channels = 64, kernel_size = (5, 5), stride=1,padding=1),
+                nn.ReLU()
+            )
+
+        elif args.tbs == 'large':
+            self.conv_network = nn.Sequential(
+                nn.Conv2d(in_channels = in_ch ,out_channels = 32, kernel_size = (5, 5), stride=2,padding=1),
+                nn.ReLU(),
+                nn.Conv2d(in_channels = 32 ,out_channels = 48, kernel_size = (4, 4), stride=1,padding=1),
+                nn.ReLU(),
+                nn.Conv2d(in_channels = 48 ,out_channels = 64, kernel_size = (4, 4), stride=1,padding=1),
+                nn.ReLU(),
+                nn.Conv2d(in_channels = 64 ,out_channels = 64, kernel_size = (4, 4), stride=1,padding=1),
+                nn.ReLU()
+            )
 
     def forward(self,x):
         return self.conv_network(x)
@@ -339,17 +330,17 @@ class ResNet_18_PIBlock(nn.Module):
         x = transforms.functional.resize(x, (112, 112))
         x_topo = self.topo_emb(topo)
 
-        x_topo = transforms.functional.resize(x_topo, (112, 112))
+        # x_topo = transforms.functional.resize(x_topo, (112, 112))
 
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
 
-        x_topo = self.conv1_t(x_topo)
-        x_topo = self.bn1_t(x_topo)
-        x_topo = self.relu_t(x_topo)
-        x_topo = self.maxpool_t(x_topo)
+        # x_topo = self.conv1_t(x_topo)
+        # x_topo = self.bn1_t(x_topo)
+        # x_topo = self.relu_t(x_topo)
+        # x_topo = self.maxpool_t(x_topo)
 
 
         x,x_topo = self.layer1((x,x_topo))

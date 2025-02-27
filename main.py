@@ -63,6 +63,8 @@ argparser.add_argument("--num_workers", default=2, type=int, help="Number of wor
 argparser.add_argument("--config", default=None, type=str, help="Path to config file, containing the Nerual architectures")
 argparser.add_argument("--name", default="", type=str, help="Name of the run")
 argparser.add_argument("--tb_add_x", default=False, action="store_true", help="Add the x into the topological resnet when using PIBlock")
+argparser.add_argument("--tb_add_t", default=False, action="store_true", help="Add the topological out back into the topological resnet when using PIBlock")
+
 
 args = argparser.parse_args()
 

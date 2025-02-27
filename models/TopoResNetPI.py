@@ -108,14 +108,41 @@ class TopoIMG_ResNet(nn.Module): #this is based on the resnet implementation on 
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
         #resnet layers
-        self.layer1 = self.__make_layer(64, 64, stride=1)
-        self.layer2 = self.__make_layer(64, 128, stride=2)
+        if args.tbs == 'small':
+            self.topo_net = nn.Sequential(
+                    self.__make_layer(64, 64, stride=1),
+                    self.__make_layer(64, 128, stride=2)
+            )   
+            self.fc = nn.Linear(128, hidden_size)
+
+        elif args.tbs == 'normal':
+            self.topo_net = nn.Sequential(
+                    self.__make_layer(64, 64, stride=1),
+                    self.__make_layer(64, 128, stride=2),
+                    self.__make_layer(128, 256, stride=2),
+                    # self.__make_layer(256, 512, stride=2)
+
+            )
+            self.fc = nn.Linear(256, hidden_size)
+
+        elif args.tbs == 'large':
+            self.topo_net = nn.Sequential(
+                    self.__make_layer(64, 64, stride=1),
+                    self.__make_layer(64, 128, stride=2),
+                    self.__make_layer(128, 256, stride=2),
+                    self.__make_layer(256, 512, stride=2)
+
+            )
+            self.fc = nn.Linear(512, hidden_size)
+
+        # self.layer1 = self.__make_layer(64, 64, stride=1)
+        # self.layer2 = self.__make_layer(64, 128, stride=2)
         # self.layer3 = self.__make_layer(128, 256, stride=2)
         # self.layer4 = self.__make_layer(256, 512, stride=2)
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(128, hidden_size)
 
+        
     def __make_layer(self, in_channels, out_channels, stride):
 
         identity_downsample = None
@@ -134,8 +161,9 @@ class TopoIMG_ResNet(nn.Module): #this is based on the resnet implementation on 
         x = self.relu(x)
         x = self.maxpool(x)
 
-        x = self.layer1(x)
-        x = self.layer2(x)
+        x = self.topo_net(x)
+        # x = self.layer1(x)
+        # x = self.layer2(x)
         # x = self.layer3(x)
         # x = self.layer4(x)
 
@@ -177,8 +205,13 @@ class ResNet_18_TopoPI(nn.Module):
             raise('This part is not yet inplemented in the config - TopoPI')
             layers = [layer_from_config(layer_config) for layer_config in config["topo_net"]]
             self.topo_net = nn.Sequential(*layers)
+
         else: #Based on resnet - for now a potential change in the future KEKW
-            self.topo_net = TopoIMG_ResNet(1,64)
+            if args.topodim_concat:
+                self.topo_net = TopoIMG_ResNet(2,64)
+            else:    
+                self.topo_net = TopoIMG_ResNet(1,64)
+        
         if args.config:
             layers = [layer_from_config(layer_config) for layer_config in config["res_net_fc"]]
             self.res_net_fc = nn.Sequential(*layers)
@@ -189,6 +222,7 @@ class ResNet_18_TopoPI(nn.Module):
                 nn.Linear(128,64),
                 nn.ReLU()
             )
+        
         if args.config:
             layers = [layer_from_config(layer_config) for layer_config in config["fc"]]
             self.fc = nn.Sequential(*layers)
@@ -221,6 +255,7 @@ class ResNet_18_TopoPI(nn.Module):
         topo = topo.to('cuda:0')
 
         x = transforms.functional.resize(x, (112, 112))
+
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
