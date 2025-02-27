@@ -56,7 +56,7 @@ tensor_board_path = 'runs/' + args.name + args.model + '_' + args.tv + '_' + str
 
 
 
-def test_model(model, dataloader):
+def test_model(model, dataloader,criterion, optimizer):
     print('Testing model')
     model.eval()
     running_loss = 0.0
