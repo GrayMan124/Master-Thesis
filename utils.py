@@ -72,7 +72,7 @@ def test_model(model, dataloader):
             inputs = (x1,x2)
 
         labels = labels.to(device)
-
+        optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)
         optimizer.zero_grad() # Zero the parameter gradients
 
         with torch.set_grad_enabled(False): # Forward. Track history if only in train

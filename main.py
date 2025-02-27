@@ -33,6 +33,7 @@ from models.ResNetTopo2Dim import *
 from models.ResNetTopoBlock import *
 from models.TopoResNet import *
 from models.TopoResNetPI import * 
+from models.ResNet import *
 
 torch.autograd.set_detect_anomaly(True)
 

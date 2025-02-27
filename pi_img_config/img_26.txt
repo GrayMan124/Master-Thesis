@@ -1,0 +1,7 @@
+--cores=1
+--tv=pi_img
+--name=LAND_TBR_CONCAT_L_LR0.0002
+--lr=0.0002
+--model=TBR_img
+--topodim_concat
+--tbs=large
