@@ -268,7 +268,7 @@ if __name__ == "__main__":
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, verbose=True)
 
     model, _ = train_model(model, {"train": trainloader, "val": valloader}, criterion, optimizer, epochs)
-    test_model(model,testloader)
+    test_model(model,testloader,criterion, optimizer)
 
     if args.sm:
         print('Saving model')
