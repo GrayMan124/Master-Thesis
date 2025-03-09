@@ -1,6 +1,6 @@
 --cores=1
 --tv=pi_img
---name=LAND_TR_DIM0_L_LR0.0001
+--name=PI_IMG_34_TR_DIM0_L_LR
 --lr=0.0001
 --model=TR_img
 --topodim=0

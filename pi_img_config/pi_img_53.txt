@@ -1,6 +1,6 @@
 --cores=1
 --tv=pi_img
---name=LAND_TR_CONCAT_L_LR0.0002
+--name=PI_IMG_53_TR_CONCAT_L_LR
 --lr=0.0002
 --model=TR_img
 --topodim_concat
