@@ -1,7 +1,0 @@
---cores=1
---tv=pi_img
---name=LAND_TBR_DIM1_N_LR0.0001
---lr=0.0001
---model=TBR_img
---topodim=1
---tbs=normal
