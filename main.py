@@ -125,7 +125,7 @@ if __name__ == "__main__":
     except:
         
         print('Failed to load the data, processing the data and saving')
-
+        
         trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
                                         download=True)
         data_fin_train, from_train = process_data_topo(trainset)

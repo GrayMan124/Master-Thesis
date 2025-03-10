@@ -1,0 +1,8 @@
+--lr=0.0003
+--tv=silh
+--topodim=0
+--cores=1
+--tbs=normal
+--config=config/TBR_bc_2dim.json
+--name=SILH_TBR_2DIM_1
+--topodim_concat

@@ -1,0 +1,10 @@
+--lr=0.0003
+--tv=land
+--res=100
+--topodim=0
+--cores=1
+--tbs=normal
+--config=config/TBR_land_2dim.json
+--name=LAND_2DIM_TR_1
+--topodim_concat
+--model=TR
