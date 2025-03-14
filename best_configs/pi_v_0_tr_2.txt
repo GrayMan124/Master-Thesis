@@ -1,0 +1,8 @@
+--lr=0.0001
+--tv=pi_v
+--topodim=0
+--cores=1
+--tbs=normal
+--config=config/TBR_piv.json
+--name=PIV_0_TR_2
+--model=TR

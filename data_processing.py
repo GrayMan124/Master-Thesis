@@ -19,6 +19,12 @@ from multiprocessing import Pool, cpu_count, set_start_method
 
 from config import args
 
+import resource
+rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
+resource.setrlimit(resource.RLIMIT_NOFILE, (4096, rlimit[1]))
+
+import torch.multiprocessing
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 #Function to process the image that is:
 # - Change the image to Gray-scale
@@ -261,7 +267,7 @@ def process_img_topo_pi_img(data, to_grayscale = transforms.Grayscale(num_output
 
     return image, L_t
 
-def process_data_topo(dataset, train_set = True, from_train = None):
+def process_data_topo(dataset, train_set = True, from_train = None, slice = None):
 
     # if 
     augmentation_transform = transforms.Compose([
@@ -274,6 +280,8 @@ def process_data_topo(dataset, train_set = True, from_train = None):
 
 
     data = dataset.data
+    if slice is not None:
+        data = dataset.data[:slice]
 
     data_len = data.shape[0]
 
@@ -335,7 +343,7 @@ def process_data_topo(dataset, train_set = True, from_train = None):
                 results.append(process_img_topo_silh(sample))
         else:
             with Pool(args.cores) as pool: #multiprocessing the topological data transform
-                results = list(tqdm(pool.imap(process_img_topo_silh,data),total=len(data)))
+                results = list(tqdm(pool.imap(process_img_topo_silh,data, maxtaskperchild = 1),total=len(data)))
 
     else:
         raise('Error - invalid topological vectorization method')
