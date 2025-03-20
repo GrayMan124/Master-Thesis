@@ -118,7 +118,7 @@ if __name__ == "__main__":
         test_size = len(trainset) - train_size
 
         trainset, valset  = random_split(trainset, [train_size, test_size])
-
+        
         testset = MyDataset(test_set,test_set_target)
         
         if args.aug > 0:
@@ -155,13 +155,13 @@ if __name__ == "__main__":
         with open(train_set_target_path, 'wb') as f:
             pickle.dump(trainset.targets, f)
 
-        trainset = MyDataset(data_fin_train,trainset.targets)
+        trainset_main = MyDataset(data_fin_train,trainset.targets)
 
         train_size = int((1-args.val_size) * len(trainset))
         test_size = len(trainset) - train_size
 
-        trainset, valset  = random_split(trainset, [train_size, test_size])
-
+        trainset, valset  = random_split(trainset_main, [train_size, test_size])
+        
         testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                                download=True)
         
@@ -183,7 +183,7 @@ if __name__ == "__main__":
                     transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
                     transforms.RandomRotation(15)        # Randomly rotate the image
                 ])
-            
+            # trainset = MyDataset(trainset)
             aug_set = torchvision.datasets.CIFAR10(root='./data', train=True,
                                                download=True, transform = transform_aug )
             
@@ -193,19 +193,31 @@ if __name__ == "__main__":
             # subset_dataset = Subset(aug_set, subset_indices)
             aug_targets = aug_set.targets[:slice_size]
 
+            
+            subset_train = [trainset.dataset[i] for i in trainset.indices]
+
+            # print(f'Subset_train data: {subset_train[0][0]}')
+            
+            # print(f'Subset_train Label: {subset_train[0][1]}')
+            
+            # print(len(subset_train[0]))
+            # raise('lot tego')
+            subset_train_data = [sample[0] for sample in subset_train]
+            subset_train_label = [sample[1] for sample in subset_train]
+
+            subset_train_my_data = MyDataset(subset_train_data,subset_train_label)
             aug_set = process_data_topo(aug_set, train_set= False, from_train = from_train, slice = slice_size)
+
+            # subset_train[:][0].extend(aug_set)
+            # subset_train[:][1].extend(aug_targets)
 
             aug_data_set = MyDataset(aug_set,aug_targets)
 
-            # trainset_data = trainset.data
-            
-            # trainset_targets = trainset.targets
+            # print()
 
-            # comb_data = torch.vstack([trainset_data,aug_set])
-            
-            # comb_targets = torch.vstack([trainset_targets,aug_targets])
-
-            trainset = ConcatDataset([aug_data_set,train_set])
+            print("Priting the samples from the cocnatenated dataset")
+            trainset = ConcatDataset([aug_data_set,subset_train_my_data])
+            print(f'Trainset: {trainset}')
 
             with open(aug_set_path, 'wb') as f:
                 aug_set = pickle.dump(aug_set,f)
