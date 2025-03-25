@@ -45,8 +45,8 @@ base_dataset_path = 'data/'
 train_set_path = base_dataset_path +  'train_set_' + args.tv + '_' + str(args.res) + '_' + str(args.topodim) + '_' + str(args.topodim_concat) +  '_' + args.bw +'.pkl'
 train_set_target_path = base_dataset_path +  'train_set_target_' + args.tv + '_' + str(args.res) + '_' + str(args.topodim)+ '_' + str(args.topodim_concat) + '_' + args.bw  +'.pkl'
 
-aug_set_path = base_dataset_path +  'aug_set_' + args.tv + '_' + str(args.res) + '_' + str(args.topodim) + '_' + str(args.topodim_concat) +  '_' + args.bw +'.pkl'
-aug_set_target_path = base_dataset_path +  'aug_set_target_' + args.tv + '_' + str(args.res) + '_' + str(args.topodim)+ '_' + str(args.topodim_concat) + '_' + args.bw  +'.pkl'
+aug_set_path = base_dataset_path +  'aug_set_' + str(args.aug*100) + args.tv + '_' + str(args.res) + '_' + str(args.topodim) + '_' + str(args.topodim_concat) +  '_' + args.bw +'.pkl'
+aug_set_target_path = base_dataset_path +  'aug_set_target_' + str(args.aug*100) + args.tv + '_' + str(args.res) + '_' + str(args.topodim)+ '_' + str(args.topodim_concat) + '_' + args.bw  +'.pkl'
 
 
 test_set_path = base_dataset_path +  'test_set_' + args.tv + '_' + str(args.res) + '_' + str(args.topodim) + '_' + str(args.topodim_concat) + '_' + args.bw + '.pkl'
@@ -98,6 +98,7 @@ if __name__ == "__main__":
 
     print('Trying to load the data')
 
+    #loading the data
     try:
         with open(train_set_path, 'rb') as f:
             train_set = pickle.load(f)
@@ -114,6 +115,7 @@ if __name__ == "__main__":
 
         trainset = MyDataset(train_set,train_set_target)
 
+        #Splitting train set into validation set
         train_size = int((1 - args.val_size) * len(trainset))
         test_size = len(trainset) - train_size
 
@@ -121,6 +123,9 @@ if __name__ == "__main__":
         
         testset = MyDataset(test_set,test_set_target)
         
+
+
+        #Loading augmented data
         if args.aug > 0:
             with open(aug_set_path, 'rb') as f:
                 aug_set = pickle.load(f)
@@ -128,20 +133,24 @@ if __name__ == "__main__":
             with open(aug_set_target_path, 'rb') as f:
                 aug_set_target = pickle.load(f)
             
-            trainset_data = trainset.data
-            
-            trainset_targets = trainset.targets
 
-            comb_data = torch.vstack([trainset_data,aug_set])
+            aug_data_set = MyDataset(aug_set,aug_set_target)
             
-            comb_targets = torch.vstack([trainset_targets,aug_set_target])
+            #Transforming the train set tu be combined with the augmentation set later
+            subset_train = [trainset.dataset[i] for i in trainset.indices]
 
-            trainset = MyDataset(comb_data,comb_targets)
+            subset_train_data = [sample[0] for sample in subset_train]
+            subset_train_label = [sample[1] for sample in subset_train]
+
+            subset_train_my_data = MyDataset(subset_train_data,subset_train_label)
+
+            #Final train set with the augmentation
+            trainset = ConcatDataset([aug_data_set,subset_train_my_data])
+
 
         print('Data loading succesfull')
 
     except:
-        
         print('Failed to load the data, processing the data and saving')
         
         trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
@@ -183,37 +192,29 @@ if __name__ == "__main__":
                     transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
                     transforms.RandomRotation(15)        # Randomly rotate the image
                 ])
-            # trainset = MyDataset(trainset)
+            
             aug_set = torchvision.datasets.CIFAR10(root='./data', train=True,
                                                download=True, transform = transform_aug )
             
-            # subset_indices = torch.arange(int(args.aug * len(aug_set)))  # First 5000 samples
+
             slice_size = int(args.aug * len(aug_set))
 
-            # subset_dataset = Subset(aug_set, subset_indices)
+
             aug_targets = aug_set.targets[:slice_size]
 
             
             subset_train = [trainset.dataset[i] for i in trainset.indices]
 
-            # print(f'Subset_train data: {subset_train[0][0]}')
-            
-            # print(f'Subset_train Label: {subset_train[0][1]}')
-            
-            # print(len(subset_train[0]))
-            # raise('lot tego')
+
             subset_train_data = [sample[0] for sample in subset_train]
             subset_train_label = [sample[1] for sample in subset_train]
 
             subset_train_my_data = MyDataset(subset_train_data,subset_train_label)
             aug_set = process_data_topo(aug_set, train_set= False, from_train = from_train, slice = slice_size)
 
-            # subset_train[:][0].extend(aug_set)
-            # subset_train[:][1].extend(aug_targets)
 
             aug_data_set = MyDataset(aug_set,aug_targets)
 
-            # print()
 
             print("Priting the samples from the cocnatenated dataset")
             trainset = ConcatDataset([aug_data_set,subset_train_my_data])
