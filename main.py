@@ -186,13 +186,27 @@ if __name__ == "__main__":
         testset = MyDataset(data_fin_test,testset.targets)
         
         if args.aug > 0:
-            transform_aug = transforms.Compose([
-                    transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
-                    transforms.RandomCrop(16, padding=4), # Randomly crop the image with padding
-                    transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
-                    transforms.RandomRotation(15)        # Randomly rotate the image
-                ])
             
+
+            if args.aug_type =='all':
+                transform_aug = transforms.Compose([
+                        transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
+                        transforms.RandomVerticalFlip(),
+                        transforms.RandomResizedCrop(6), # Randomly crop the image with padding
+                        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+                        transforms.RandomRotation(15),        # Randomly rotate the image
+                        transforms.GaussianBlur((5,5))
+                    ])
+            elif args.aug_type =='non-topo':
+                transform_aug = transforms.Compose([
+                        transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
+                        transforms.RandomVerticalFlip(),
+                        # transforms.RandomResizedCrop(16, padding=4), # Randomly crop the image with padding
+                        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+                        # transforms.RandomRotation(15),        # Randomly rotate the image
+                        transforms.GaussianBlur((5,5))
+                    ])
+
             aug_set = torchvision.datasets.CIFAR10(root='./data', train=True,
                                                download=True, transform = transform_aug )
             

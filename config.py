@@ -31,5 +31,6 @@ argparser.add_argument("--name", default="", type=str, help="Name of the run")
 argparser.add_argument("--tb_add_x", default=False, action="store_true", help="Add the x into the topological resnet when using PIBlock")
 argparser.add_argument("--tb_add_t", default=False, action="store_true", help="Add the topological out back into the topological resnet when using PIBlock")
 argparser.add_argument("--aug", default=0, type=float, help="Data augmentation size")
+argparser.add_argument("--aug_type", default="all", type=str, help="Data augmentation type")
 
 args = argparser.parse_args()
