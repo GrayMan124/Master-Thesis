@@ -4,24 +4,19 @@ import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import pickle
 import gudhi as gd
-import gudhi.representations
-import argparse
-from matplotlib import pyplot as plt
 import torch
 import torchvision
 import torchvision.transforms as transforms
 import torch.nn as nn
-import cv2
 from PIL import Image
-from torchvision.transforms import v2
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader, ConcatDataset, random_split
+from torch.utils.data import Dataset, random_split
 from tqdm import tqdm
-from multiprocessing import Pool, cpu_count, set_start_method
 import time
 from torch.utils.tensorboard import SummaryWriter
 import copy
 import json
+from torch.utils.data import Subset
 
 #imports from the files
 from utils import test_model, train_model, count_parameters
@@ -35,41 +30,10 @@ from models.TopoResNet import *
 from models.TopoResNetPI import * 
 from models.ResNet import *
 
+from config import args
+
+ 
 torch.autograd.set_detect_anomaly(True)
-
-def convert_arg_line_to_args(arg_line):
-    for arg in arg_line.split():
-        if not arg.strip():
-            continue
-        yield arg
-
-
-#The argparser part
-argparser = argparse.ArgumentParser(fromfile_prefix_chars='@')
-argparser.add_argument("--lr", default=0.0003, type=float, help="Meta-learning rate (used on query set - potentially acoss tasks)")
-argparser.add_argument("--seed", default=119, type=int, help="Seed to use")
-argparser.add_argument("--model", default="TBR", type=str, help="Select model, avaliable models are ResNet, TR, TBR")
-argparser.add_argument("--tv", default="land", type=str, help="Topological vectorization method used, methods available - check readme.txt")
-argparser.add_argument("--res", default=100, type=int, help="Resolution for the Landscape vectorization method")
-argparser.add_argument("--tbs", default="normal", type=str, help="Topo block size")
-argparser.add_argument("--sm", default=False, action="store_true", help="Enables saving the model")
-argparser.add_argument("--bw", default="cv2", type=str, help="Select the black-white transformation option")
-argparser.add_argument("--topodim", default=1, type=int, help="Which dimension of the topology groups to use")
-argparser.add_argument("--topodim_concat", default=False, action="store_true", help="Concatenating both dimensions of the topology features on 0 and 1 dim")
-argparser.add_argument("--epochs", default=50, type=int, help="Number of epochs to train on")
-argparser.add_argument("--cores", default=8, type=int, help="Number of cores to use for multiprocessing")
-argparser.add_argument("--batch_size", default=64, type=int, help="Batchsize of the training")
-argparser.add_argument("--val_size", default=0.2, type=float, help="Size of the validation set")
-argparser.add_argument("--num_workers", default=2, type=int, help="Number of workers fo the dataloaders")
-argparser.add_argument("--config", default=None, type=str, help="Path to config file, containing the Nerual architectures")
-argparser.add_argument("--name", default="", type=str, help="Name of the run")
-argparser.add_argument("--tb_add_x", default=False, action="store_true", help="Add the x into the topological resnet when using PIBlock")
-argparser.add_argument("--tb_add_t", default=False, action="store_true", help="Add the topological out back into the topological resnet when using PIBlock")
-
-
-args = argparser.parse_args()
-
-
 torch.manual_seed(args.seed)
 
 
@@ -78,11 +42,15 @@ tensor_board_path = 'runs/' + args.name + args.model + '_' + args.tv + '_' + str
 
 
 base_dataset_path = 'data/'
-train_set_path = base_dataset_path + 'train_set_' + args.tv + '_' + str(args.res) + '_' + str(args.topodim) + '_' + str(args.topodim_concat) +  '_' + args.bw +'.pkl'
-train_set_target_path = base_dataset_path + 'train_set_target_' + args.tv + '_' + str(args.res) + '_' + str(args.topodim)+ '_' + str(args.topodim_concat) + '_' + args.bw  +'.pkl'
+train_set_path = base_dataset_path +  'train_set_' + args.tv + '_' + str(args.res) + '_' + str(args.topodim) + '_' + str(args.topodim_concat) +  '_' + args.bw +'.pkl'
+train_set_target_path = base_dataset_path +  'train_set_target_' + args.tv + '_' + str(args.res) + '_' + str(args.topodim)+ '_' + str(args.topodim_concat) + '_' + args.bw  +'.pkl'
 
-test_set_path = base_dataset_path + 'test_set_' + args.tv + '_' + str(args.res) + '_' + str(args.topodim) + '_' + str(args.topodim_concat) + '_' + args.bw + '.pkl'
-test_set_target_path = base_dataset_path + 'test_set_target_' + args.tv + '_' + str(args.res) + '_' + str(args.topodim) + '_' +  str(args.topodim_concat) + '_' + args.bw  + '.pkl'
+aug_set_path = base_dataset_path +  'aug_set_' + str(args.aug*100) + args.tv + '_' + str(args.res) + '_' + str(args.topodim) + '_' + str(args.topodim_concat) +  '_' + args.bw +'.pkl'
+aug_set_target_path = base_dataset_path +  'aug_set_target_' + str(args.aug*100) + args.tv + '_' + str(args.res) + '_' + str(args.topodim)+ '_' + str(args.topodim_concat) + '_' + args.bw  +'.pkl'
+
+
+test_set_path = base_dataset_path +  'test_set_' + args.tv + '_' + str(args.res) + '_' + str(args.topodim) + '_' + str(args.topodim_concat) + '_' + args.bw + '.pkl'
+test_set_target_path = base_dataset_path +  'test_set_target_' + args.tv + '_' + str(args.res) + '_' + str(args.topodim) + '_' +  str(args.topodim_concat) + '_' + args.bw  + '.pkl'
 
 
 result_file = 'results.txt'
@@ -130,6 +98,7 @@ if __name__ == "__main__":
 
     print('Trying to load the data')
 
+    #loading the data
     try:
         with open(train_set_path, 'rb') as f:
             train_set = pickle.load(f)
@@ -143,25 +112,50 @@ if __name__ == "__main__":
         with open(test_set_target_path, 'rb') as f:
             test_set_target = pickle.load(f)
 
+
         trainset = MyDataset(train_set,train_set_target)
 
+        #Splitting train set into validation set
         train_size = int((1 - args.val_size) * len(trainset))
         test_size = len(trainset) - train_size
 
         trainset, valset  = random_split(trainset, [train_size, test_size])
-
+        
         testset = MyDataset(test_set,test_set_target)
+        
+
+
+        #Loading augmented data
+        if args.aug > 0:
+            with open(aug_set_path, 'rb') as f:
+                aug_set = pickle.load(f)
+            
+            with open(aug_set_target_path, 'rb') as f:
+                aug_set_target = pickle.load(f)
+            
+
+            aug_data_set = MyDataset(aug_set,aug_set_target)
+            
+            #Transforming the train set tu be combined with the augmentation set later
+            subset_train = [trainset.dataset[i] for i in trainset.indices]
+
+            subset_train_data = [sample[0] for sample in subset_train]
+            subset_train_label = [sample[1] for sample in subset_train]
+
+            subset_train_my_data = MyDataset(subset_train_data,subset_train_label)
+
+            #Final train set with the augmentation
+            trainset = ConcatDataset([aug_data_set,subset_train_my_data])
+
+
         print('Data loading succesfull')
 
     except:
         print('Failed to load the data, processing the data and saving')
-
-        transform = transforms.Compose(
-            [transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
+        
         trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
-                                        download=True)#, transform=transform)
+                                        download=True)
+        
         data_fin_train, from_train = process_data_topo(trainset)
 
         with open(train_set_path, 'wb') as f:
@@ -170,15 +164,16 @@ if __name__ == "__main__":
         with open(train_set_target_path, 'wb') as f:
             pickle.dump(trainset.targets, f)
 
-        trainset = MyDataset(data_fin_train,trainset.targets)
+        trainset_main = MyDataset(data_fin_train,trainset.targets)
 
         train_size = int((1-args.val_size) * len(trainset))
         test_size = len(trainset) - train_size
 
-        trainset, valset  = random_split(trainset, [train_size, test_size])
-
+        trainset, valset  = random_split(trainset_main, [train_size, test_size])
+        
         testset = torchvision.datasets.CIFAR10(root='./data', train=False,
-                                               download=True)#, transform=transform)
+                                               download=True)
+        
         data_fin_test = process_data_topo(testset,train_set= False, from_train = from_train)
 
 
@@ -189,8 +184,61 @@ if __name__ == "__main__":
             pickle.dump(testset.targets, f)
 
         testset = MyDataset(data_fin_test,testset.targets)
+        
+        if args.aug > 0:
+            
+
+            if args.aug_type =='all':
+                transform_aug = transforms.Compose([
+                        transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
+                        transforms.RandomVerticalFlip(),
+                        transforms.RandomResizedCrop(6), # Randomly crop the image with padding
+                        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+                        transforms.RandomRotation(15),        # Randomly rotate the image
+                        transforms.GaussianBlur((5,5))
+                    ])
+            elif args.aug_type =='non-topo':
+                transform_aug = transforms.Compose([
+                        transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
+                        transforms.RandomVerticalFlip(),
+                        # transforms.RandomResizedCrop(16, padding=4), # Randomly crop the image with padding
+                        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+                        # transforms.RandomRotation(15),        # Randomly rotate the image
+                        transforms.GaussianBlur((5,5))
+                    ])
+
+            aug_set = torchvision.datasets.CIFAR10(root='./data', train=True,
+                                               download=True, transform = transform_aug )
+            
+
+            slice_size = int(args.aug * len(aug_set))
 
 
+            aug_targets = aug_set.targets[:slice_size]
+
+            
+            subset_train = [trainset.dataset[i] for i in trainset.indices]
+
+
+            subset_train_data = [sample[0] for sample in subset_train]
+            subset_train_label = [sample[1] for sample in subset_train]
+
+            subset_train_my_data = MyDataset(subset_train_data,subset_train_label)
+            aug_set = process_data_topo(aug_set, train_set= False, from_train = from_train, slice = slice_size)
+
+
+            aug_data_set = MyDataset(aug_set,aug_targets)
+
+
+            print("Priting the samples from the cocnatenated dataset")
+            trainset = ConcatDataset([aug_data_set,subset_train_my_data])
+            print(f'Trainset: {trainset}')
+
+            with open(aug_set_path, 'wb') as f:
+                aug_set = pickle.dump(aug_set,f)
+            
+            with open(aug_set_target_path, 'wb') as f:
+                aug_set_target = pickle.dump(aug_targets,f)
 
 
     if args.model == 'ResNet':

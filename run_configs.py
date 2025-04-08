@@ -9,7 +9,7 @@ argparser.add_argument("--start", default=1, type=int, help="Starting from")
 args = argparser.parse_args()
 
 #Creating a list of paths for the configs
-for i in range(args.start,19):
+for i in range(args.start,55):
     path = f'./{args.conf}_config/{args.conf}_{i}.txt'
     configs.append(path)
 

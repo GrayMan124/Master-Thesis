@@ -1,0 +1,10 @@
+--lr=0.0005
+--tv=bc
+--res=100
+--topodim=0
+--cores=1
+--tbs=large
+--config=config/TBR_bc_2dim.json
+--name=BC_TR_2DIM_18
+--topodim_concat
+--model=TR

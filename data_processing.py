@@ -17,29 +17,14 @@ from torch.utils.data import Dataset, DataLoader, ConcatDataset, random_split
 from tqdm import tqdm
 from multiprocessing import Pool, cpu_count, set_start_method
 
+from config import args
 
-argparser = argparse.ArgumentParser(fromfile_prefix_chars='@')
-argparser.add_argument("--lr", default=0.0003, type=float, help="Meta-learning rate (used on query set - potentially acoss tasks)")
-argparser.add_argument("--seed", default=119, type=int, help="Seed to use")
-argparser.add_argument("--model", default="TBR", type=str, help="Select model, avaliable models are ResNet, TR, TBR")
-argparser.add_argument("--tv", default="land", type=str, help="Topological vectorization method used, methods available - check readme.txt")
-argparser.add_argument("--res", default=100, type=int, help="Resolution for the Landscape vectorization method")
-argparser.add_argument("--tbs", default="normal", type=str, help="Topo block size")
-argparser.add_argument("--sm", default=False, action="store_true", help="Enables saving the model")
-argparser.add_argument("--bw", default="cv2", type=str, help="Select the black-white transformation option")
-argparser.add_argument("--topodim", default=1, type=int, help="Which dimension of the topology groups to use")
-argparser.add_argument("--topodim_concat", default=False, action="store_true", help="Concatenating both dimensions of the topology features on 0 and 1 dim")
-argparser.add_argument("--epochs", default=50, type=int, help="Number of epochs to train on")
-argparser.add_argument("--cores", default=8, type=int, help="Number of cores to use for multiprocessing")
-argparser.add_argument("--batch_size", default=64, type=int, help="Batchsize of the training")
-argparser.add_argument("--val_size", default=0.2, type=float, help="Size of the validation set")
-argparser.add_argument("--num_workers", default=2, type=int, help="Number of workers fo the dataloaders")
-argparser.add_argument("--config", default=None, type=str, help="Path to config file, containing the Nerual architectures")
-argparser.add_argument("--name", default="", type=str, help="Name of the run")
-argparser.add_argument("--tb_add_x", default=False, action="store_true", help="Add the x into the topological resnet when using PIBlock")
+import resource
+rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
+resource.setrlimit(resource.RLIMIT_NOFILE, (4096, rlimit[1]))
 
-args = argparser.parse_args()
-
+import torch.multiprocessing
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 #Function to process the image that is:
 # - Change the image to Gray-scale
@@ -50,26 +35,6 @@ def process_img_topo_land(data, to_grayscale = transforms.Grayscale(num_output_c
         transform=transforms.Compose(
             [transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-        # transforms = v2.Compose([
-        #     v2.RandomResizedCrop(size=(224, 224), antialias=True),
-        #     v2.RandomHorizontalFlip(p=0.5),
-        #     v2.ToDtype(torch.float32, scale=True),
-        #     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-        #     ])
-
-
-        # test_transform = transforms.Compose([
-        #         transforms.ToTensor(),
-        #         transforms.Normalize(mean=[0.5, 0.5, 0.5])
-        #     ])
-        # transform = transforms.Compose([
-        #         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
-        #         transforms.RandomCrop(32, padding=4), # Randomly crop the image with padding
-        #         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
-        #         transforms.RandomRotation(15),        # Randomly rotate the image
-        #         transforms.ToTensor(),                # Convert image to PyTorch tensor
-        #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) # Normalize the image
-        #     ])
 
         if args.bw =='cv2':
             transform_bw=transforms.Compose(
@@ -108,22 +73,13 @@ def process_img_topo_land(data, to_grayscale = transforms.Grayscale(num_output_c
             L_t = torch.tensor(LS,dtype=torch.float)
 
 
-        # L = LS.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)])
-        # L_t = torch.tensor(L,dtype=torch.float)
-
-
-
-
-
-        # L_t = L_t[:,:200]
-
         if L_t is None:
             raise('None in the Landscape processing L_T')
 
         return image, L_t
 
     except Exception as e:
-        print(f"Error with item {item}: {e}")
+        print(f"Error with item: {e}")
         return None
 
 def process_img_topo_betti_curve(data, to_grayscale = transforms.Grayscale(num_output_channels=1)): #Processing to Betti_curves
@@ -133,23 +89,6 @@ def process_img_topo_betti_curve(data, to_grayscale = transforms.Grayscale(num_o
     transform=transforms.Compose(
         [transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-
-    # transforms = v2.Compose([
-    #     v2.RandomResizedCrop(size=(224, 224), antialias=True),
-    #     v2.RandomHorizontalFlip(p=0.5),
-    #     v2.ToDtype(torch.float32, scale=True),
-    #     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-    #     ])
-
-    # transform = transforms.Compose([
-    #         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
-    #         transforms.RandomCrop(32, padding=4), # Randomly crop the image with padding
-    #         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
-    #         transforms.RandomRotation(15),        # Randomly rotate the image
-    #         transforms.ToTensor(),                # Convert image to PyTorch tensor
-    #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) # Normalize the image
-    #     ])
 
     transform_bw=transforms.Compose(
             [transforms.ToTensor(),
@@ -185,8 +124,6 @@ def process_img_topo_betti_curve(data, to_grayscale = transforms.Grayscale(num_o
         BC = BC.fit_transform([cubical_complex.persistence_intervals_in_dimension(args.topodim)])
         L_t = torch.tensor(BC,dtype=torch.float)
 
-
-
     return image, L_t
 
 #Processing using the topological Silhouette
@@ -197,24 +134,7 @@ def process_img_topo_silh(data, to_grayscale = transforms.Grayscale(num_output_c
     transform=transforms.Compose(
         [transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-
-    # transforms = v2.Compose([
-    #     v2.RandomResizedCrop(size=(224, 224), antialias=True),
-    #     v2.RandomHorizontalFlip(p=0.5),
-    #     v2.ToDtype(torch.float32, scale=True),
-    #     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-    #     ])
-
-    # transform = transforms.Compose([
-    #         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
-    #         transforms.RandomCrop(32, padding=4), # Randomly crop the image with padding
-    #         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
-    #         transforms.RandomRotation(15),        # Randomly rotate the image
-    #         transforms.ToTensor(),                # Convert image to PyTorch tensor
-    #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) # Normalize the image
-    #     ])
-
+    
     transform_bw=transforms.Compose(
             [transforms.ToTensor(),
                 transforms.Normalize(0.5, 0.5, 0.5)])
@@ -261,23 +181,6 @@ def process_img_topo_pi_v(data, to_grayscale = transforms.Grayscale(num_output_c
     transform=transforms.Compose(
         [transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-
-    # transforms = v2.Compose([
-    #     v2.RandomResizedCrop(size=(224, 224), antialias=True),
-    #     v2.RandomHorizontalFlip(p=0.5),
-    #     v2.ToDtype(torch.float32, scale=True),
-    #     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-    #     ])
-
-    # transform = transforms.Compose([
-    #         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
-    #         transforms.RandomCrop(32, padding=4), # Randomly crop the image with padding
-    #         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
-    #         transforms.RandomRotation(15),        # Randomly rotate the image
-    #         transforms.ToTensor(),                # Convert image to PyTorch tensor
-    #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) # Normalize the image
-    #     ])
 
     transform_bw=transforms.Compose(
             [transforms.ToTensor(),
@@ -326,24 +229,6 @@ def process_img_topo_pi_img(data, to_grayscale = transforms.Grayscale(num_output
         [transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-    #This transform is for the augmentation methods
-
-    # transforms = v2.Compose([
-    #     v2.RandomResizedCrop(size=(224, 224), antialias=True),
-    #     v2.RandomHorizontalFlip(p=0.5),
-    #     v2.ToDtype(torch.float32, scale=True),
-    #     v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-    #     ])
-
-    # transform = transforms.Compose([
-    #         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
-    #         transforms.RandomCrop(32, padding=4), # Randomly crop the image with padding
-    #         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
-    #         transforms.RandomRotation(15),        # Randomly rotate the image
-    #         transforms.ToTensor(),                # Convert image to PyTorch tensor
-    #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) # Normalize the image
-    #     ])
-
     transform_bw=transforms.Compose(
             [transforms.ToTensor(),
                 transforms.Normalize(0.5, 0.5, 0.5)])
@@ -382,8 +267,21 @@ def process_img_topo_pi_img(data, to_grayscale = transforms.Grayscale(num_output
 
     return image, L_t
 
-def process_data_topo(dataset, train_set = True, from_train = None):
+def process_data_topo(dataset, train_set = True, from_train = None, slice = None):
+
+    # if 
+    augmentation_transform = transforms.Compose([
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomRotation(degrees=15),
+            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)), # Small shifts
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+            transforms.GaussianBlur(kernel_size=3)]
+        )
+
+
     data = dataset.data
+    if slice is not None:
+        data = dataset.data[:slice]
 
     data_len = data.shape[0]
 
@@ -445,7 +343,7 @@ def process_data_topo(dataset, train_set = True, from_train = None):
                 results.append(process_img_topo_silh(sample))
         else:
             with Pool(args.cores) as pool: #multiprocessing the topological data transform
-                results = list(tqdm(pool.imap(process_img_topo_silh,data),total=len(data)))
+                results = list(tqdm(pool.imap(process_img_topo_silh,data, maxtaskperchild = 1),total=len(data)))
 
     else:
         raise('Error - invalid topological vectorization method')
