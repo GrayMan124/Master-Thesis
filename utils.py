@@ -21,6 +21,7 @@ import time
 from torch.utils.tensorboard import SummaryWriter
 import copy
 import json
+import pandas as pd
 
 from config import args
 
@@ -75,7 +76,7 @@ def count_parameters(model):
 
 
 
-result_file = 'results.txt'
+result_file = 'results.csv'
 
 writer = SummaryWriter(log_dir = tensor_board_path)
 
@@ -162,6 +163,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=50, is_ince
             # deep copy the model
             if phase == 'val' and epoch_acc > best_acc:
                 best_acc = epoch_acc
+                best_loss = val_loss
                 best_model_wts = copy.deepcopy(model.state_dict())
             if phase == 'val':
                 val_acc_history.append(epoch_acc)
@@ -174,9 +176,34 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=50, is_ince
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
     print('Best val Acc: {:4f}'.format(best_acc))
 
-    with open(result_file,'a') as f:
-        new_line = f'Model: {args.name} train_loss: {train_loss} val_loss: {val_loss} train_acc: {train_acc*100} val_acc: {best_acc*100}\n'
-        f.writelines(new_line)
+    results_dict = {
+        "Model_Name":args.name,
+        "Topology_Vect":args.tv,
+        "Model_arch":args.model,
+        "LR":args.lr,
+        "TopoDim_concat":args.topodim_concat,
+        "TopoDim": args.topodim,
+        "Config_file":args.config,
+        "Augmentation":args.aug,
+        "Augmentation_Type":args.aug_type,
+        "Train_loss":train_loss,
+        "Train_Acc":train_acc*100,
+        "Val_Loss":best_loss,
+        "Val_Acc":best_acc*100
+    }
+
+    result_df = pd.DataFrame([results_dict])
+
+    try:
+        df = pd.read_csv(result_file)
+        new_df = pd.concat([df,result_df],ignore_index = True)
+        new_df.to_csv(result_file,index= False)
+    except:
+        result_df.to_csv(result_file,index=False) 
+    
+    # with open(result_file,'a') as f:
+    #     new_line = f'Model: {args.name} train_loss: {train_loss} val_loss: {val_loss} train_acc: {train_acc*100} val_acc: {best_acc*100}\n'
+    #     f.writelines(new_line)
 
     # load best model weights
     model.load_state_dict(best_model_wts)
