@@ -3,6 +3,7 @@ import argparse
 import os
 
 # List of config files
+# simple add to send it to git KEKW
 configs = []
 argparser = argparse.ArgumentParser(fromfile_prefix_chars='@')
 argparser.add_argument("--conf", default="", type=str, help="starting path for the configs")
