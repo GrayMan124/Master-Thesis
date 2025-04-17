@@ -4,5 +4,6 @@
 --lr=0.0001
 --model=TBR_img
 --topodim=1
---tbs=large--aug=0.3
+--tbs=large
+--aug=0.3
 --aug_type=all
