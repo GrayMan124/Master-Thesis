@@ -192,10 +192,12 @@ if __name__ == "__main__":
                 transform_aug = transforms.Compose([
                         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
                         transforms.RandomVerticalFlip(),
+                        transforms.RandomErasing(),
                         transforms.RandomResizedCrop(6), # Randomly crop the image with padding
                         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
                         transforms.RandomRotation(15),        # Randomly rotate the image
-                        transforms.GaussianBlur((5,5))
+                        transforms.GaussianBlur((5,5)),
+                        transforms.RandomPerspective()
                     ])
                 
             elif args.aug_type =='non-topo':
@@ -208,13 +210,16 @@ if __name__ == "__main__":
                         transforms.GaussianBlur((5,5))
                     ])
                 
+            #randomblackout,MixUP, 
             elif args.aug_type =='topo':
                 transform_aug = transforms.Compose([
                         # transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
                         # transforms.RandomVerticalFlip(),
+                        transforms.RandomErasing(),
                         transforms.RandomResizedCrop(16, padding=4), # Randomly crop the image with padding
                         # transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
                         transforms.RandomRotation(15),        # Randomly rotate the image
+                        transforms.RandomPerspective()
                         # transforms.GaussianBlur((5,5))
                     ])
     
