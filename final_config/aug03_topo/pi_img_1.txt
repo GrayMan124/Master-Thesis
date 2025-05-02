@@ -6,4 +6,4 @@
 --topodim=0
 --tbs=small
 --aug=0.3
---aug_type=all
+--aug_type=topo

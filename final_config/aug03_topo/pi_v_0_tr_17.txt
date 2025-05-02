@@ -8,4 +8,4 @@
 --name=PIV_0_TR_17
 --model=TR
 --aug=0.3
---aug_type=all
+--aug_type=topo
