@@ -5,5 +5,5 @@
 --tbs=normal
 --config=config/TBR_bc.json
 --name=BC_TBR_0_2
---aug=0.3
+--aug=0.5
 --aug_type=topo
