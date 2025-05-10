@@ -6,5 +6,6 @@
 --tbs=small
 --config=config/TBR_bc_small.json
 --name=BC_TR_0_9
---model=TR--aug=0.3
+--model=TR
+--aug=0.3
 --aug_type=all
