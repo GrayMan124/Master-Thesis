@@ -7,5 +7,5 @@
 --config=config/TBR_bc_small.json
 --name=BC_TR_0_9
 --model=TR
---aug=0.3
+--aug=0.5
 --aug_type=topo
