@@ -37,7 +37,7 @@ torch.autograd.set_detect_anomaly(True)
 torch.manual_seed(args.seed)
 
 
-model_saving_path = 'models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
+model_saving_path = 'models/saved_models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
 tensor_board_path = 'runs/' + args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw
 
 
@@ -329,7 +329,7 @@ if __name__ == "__main__":
     epochs = args.epochs
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)
-    lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, verbose=True)
+    lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)#, verbose=True)
 
     model, _ = train_model(model, {"train": trainloader, "val": valloader}, criterion, optimizer, epochs)
     test_model(model,testloader,criterion, optimizer)
