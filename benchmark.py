@@ -13,6 +13,18 @@ from PIL import Image
 import numpy as np
 from tqdm import tqdm
 
+from models.ResNet import *
+from data_processing import *
+from models.TopoResNet import *
+from models.ResNetPIBlock import *
+from models.ResNetTopo2Dim import *
+from models.ResNetTopoBlock import *
+from models.TopoResNet import *
+from models.TopoResNetPI import * 
+from models.ResNet import *
+
+
+
 def transform_initial_data(data):
     data = data.numpy()
     data = data * 256
@@ -29,20 +41,39 @@ class ModelWrapper(nn.Module):
         self.model = model 
         self.load_paramas(params_path)
 
+        
+        trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
+                                        download=True)
+        
+        #Prepering the values for processing
+        _, from_train = process_data_topo(trainset)
+        self.from_train = from_train
+
+
     def load_paramas(self,params_path):
         self.model.load_state_dict(torch.load(params_path, map_location = self.model.device))
     
     def predict(self,x):
         output = self.model(x)
-        print(output,flush=True)
-        prediction = torch.argmax(output)
-        print(prediction)
+        _, prediction = torch.max(output,1)
         return prediction
 
     def forward(self,x):
         return self.model(x)
 
-def run_test(model,loader,device):
+    def forward_proc(self,x):
+        x_train = transform_initial_data(x)
+        args.cores = 1
+        data = MyDataset(x_train,np.zeros(x_train.size))
+        processed_data, _  = process_data_topo(data, from_train=self.from_train)
+        x1,x2 = processed_data
+        x1 = x1.to(device)
+        x2 = x2.to(device)
+        return self.model((x1,x2))
+
+
+
+def run_test(model,loader,device,test_name):
     model.eval()
 
     correct = 0
@@ -64,13 +95,19 @@ def run_test(model,loader,device):
             correct += (pred_class == labels).sum().item()
     
     accuracy = 100* correct / total
-
+    
     print("\n --- Test Complete ---")
     print(f"Total Samples: {total}")
     print(f"Total correct: {correct}")
     print(f"Accuracy: {accuracy:.2f}")
-
-    return accuracy
+    json_dict = {
+        'test_name': test_name,
+        'accuracy': accuracy,
+        'total_samples': total,
+        'correct': correct
+    } 
+    
+    return json_dict    
 
 if __name__ == '__main__':
     all_corruption_types = [
@@ -80,35 +117,37 @@ if __name__ == '__main__':
         'jpeg_compression'
         ]
     # x,y = load_cifar10c(n_examples=10000,corruptions=all_corruption_types,severity=1)
-    x,y = load_cifar10c(n_examples=10000)
+    results_to_json = []
+    for corruption_type in all_corruption_types:
+        x,y = load_cifar10c(n_examples=10000,corruptions=[corruption_type])
 
-    # x,y = load_cifar10()
-    print(args)
-    x_np = x.numpy()
-    y_np = y.numpy()
-    x_train = transform_initial_data(x)
-    args.cores = 1
+        x_np = x.numpy()
+        y_np = y.numpy()
+        x_train = transform_initial_data(x)
+        args.cores = 1
+        model = ResNet_18_PIBlock(3,10,device)
+        model_wrapped = ModelWrapper(model,"./models/PI_IMG_19_param.pkl")
 
-    data = MyDataset(x_train,y_np)
-    processed_data, _  = process_data_topo(data)
-    data_set = MyDataset(processed_data,y)
-    trainloader = torch.utils.data.DataLoader(data_set, batch_size=32,shuffle=True, num_workers=1)
+        data = MyDataset(x_train,y_np)
+        processed_data, _  = process_data_topo(data, from_train=model_wrapped.from_train)
+        
+        data_set = MyDataset(processed_data,y)
+        trainloader = torch.utils.data.DataLoader(data_set, batch_size=32,shuffle=True, num_workers=1)
 
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        # print(f'Using device: {device}')
 
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    # print(f'Using device: {device}')
+        model_wrapped.to(device)
 
-    model = ResNet_18_PIBlock(3,10,device)
-    model_wrapped = ModelWrapper(model,"./models/PI_IMG_19_param.pkl")
-    model_wrapped.to(device)
+        results = run_test(model_wrapped,trainloader,device,corruption_type)
+        results_to_json.append(results)
 
-    run_test(model_wrapped,trainloader,device)
+    with open(f'./results/benchmark_cifar10c/{args.name}.json','w') as file:
+        json.dump(results_to_json,file)    
 
-    x_test, y_test = load_cifar10c(n_examples=10000)   
-
-    for model_name in ['Standard', 'Engstrom2019Robustness', 'Rice2020Overfitting', 'Carmon2019Unlabeled']:
-        model = load_model(model_name)
-        acc = clean_accuracy(model, x_test, y_test)
-        print('Model: {}, CIFAR-10-C accuracy: {:.1%}'.format(model_name, acc))
+    # for model_name in ['Standard', 'Engstrom2019Robustness', 'Rice2020Overfitting', 'Carmon2019Unlabeled']:
+    #     model = load_model(model_name)
+    #     acc = clean_accuracy(model, x_test, y_test)
+    #     print('Model: {}, CIFAR-10-C accuracy: {:.1%}'.format(model_name, acc))
 
 
