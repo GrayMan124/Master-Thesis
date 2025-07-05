@@ -119,6 +119,9 @@ if __name__ == '__main__':
     # x,y = load_cifar10c(n_examples=10000,corruptions=all_corruption_types,severity=1)
     results_to_json = []
     for corruption_type in all_corruption_types:
+        
+        model_saving_path = 'models/saved_models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
+        
         x,y = load_cifar10c(n_examples=10000,corruptions=[corruption_type])
 
         x_np = x.numpy()
@@ -126,7 +129,7 @@ if __name__ == '__main__':
         x_train = transform_initial_data(x)
         args.cores = 1
         model = ResNet_18_PIBlock(3,10,device)
-        model_wrapped = ModelWrapper(model,"./models/PI_IMG_19_param.pkl")
+        model_wrapped = ModelWrapper(model,model_saving_path)
 
         data = MyDataset(x_train,y_np)
         processed_data, _  = process_data_topo(data, from_train=model_wrapped.from_train)
