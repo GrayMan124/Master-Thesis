@@ -129,7 +129,26 @@ if __name__ == '__main__':
         y_np = y.numpy()
         x_train = transform_initial_data(x)
         args.cores = 1
-        model = ResNet_18_PIBlock(3,10,device)
+        if args.model =='ResNet':
+            model = ResNet_18(3,10)
+        elif args.model == 'TR':
+            model = ResNet_18_Topo(3,10,device)
+        elif args.model =='TBR':
+            model = ResNet_18_Topo_Block(3,10,device)
+        elif args.model =='TR_2dim':
+            model = ResNet_18_Topo_2dim(3,10,device)
+        elif args.model =='TR_img':
+            if args.tv != 'pi_img':
+                raise('Wrong vectorization fo TimgRes')
+            model = ResNet_18_TopoPI(3,10,device)
+        elif args.model =='TBR_img':
+            if args.tv != 'pi_img':
+                raise('Wrong vectorization fo TimgRes')
+            model = ResNet_18_PIBlock(3,10,device)
+        else:
+            print('Error - Incorrect model option')
+            raise('Error - Incorrect model option')
+        # return
         model_wrapped = ModelWrapper(model,model_saving_path)
 
         data = MyDataset(x_train,y_np)
