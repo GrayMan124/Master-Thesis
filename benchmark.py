@@ -117,11 +117,32 @@ if __name__ == '__main__':
         'jpeg_compression'
         ]
     # x,y = load_cifar10c(n_examples=10000,corruptions=all_corruption_types,severity=1)
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    
+    model_saving_path = 'models/saved_models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
+    if args.model =='ResNet':
+        model = ResNet_18(3,10)
+    elif args.model == 'TR':
+        model = ResNet_18_Topo(3,10,device)
+    elif args.model =='TBR':
+        model = ResNet_18_Topo_Block(3,10,device)
+    elif args.model =='TR_2dim':
+        model = ResNet_18_Topo_2dim(3,10,device)
+    elif args.model =='TR_img':
+        if args.tv != 'pi_img':
+            raise('Wrong vectorization fo TimgRes')
+        model = ResNet_18_TopoPI(3,10,device)
+    elif args.model =='TBR_img':
+        if args.tv != 'pi_img':
+            raise('Wrong vectorization fo TimgRes')
+        model = ResNet_18_PIBlock(3,10,device)
+    else:
+        print('Error - Incorrect model option')
+        raise('Error - Incorrect model option')
+    # return
+    model_wrapped = ModelWrapper(model,model_saving_path)
     results_to_json = []
     for corruption_type in all_corruption_types:
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        
-        model_saving_path = 'models/saved_models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
         
         x,y = load_cifar10c(n_examples=10000,corruptions=[corruption_type])
 
@@ -129,27 +150,6 @@ if __name__ == '__main__':
         y_np = y.numpy()
         x_train = transform_initial_data(x)
         args.cores = 1
-        if args.model =='ResNet':
-            model = ResNet_18(3,10)
-        elif args.model == 'TR':
-            model = ResNet_18_Topo(3,10,device)
-        elif args.model =='TBR':
-            model = ResNet_18_Topo_Block(3,10,device)
-        elif args.model =='TR_2dim':
-            model = ResNet_18_Topo_2dim(3,10,device)
-        elif args.model =='TR_img':
-            if args.tv != 'pi_img':
-                raise('Wrong vectorization fo TimgRes')
-            model = ResNet_18_TopoPI(3,10,device)
-        elif args.model =='TBR_img':
-            if args.tv != 'pi_img':
-                raise('Wrong vectorization fo TimgRes')
-            model = ResNet_18_PIBlock(3,10,device)
-        else:
-            print('Error - Incorrect model option')
-            raise('Error - Incorrect model option')
-        # return
-        model_wrapped = ModelWrapper(model,model_saving_path)
 
         data = MyDataset(x_train,y_np)
         processed_data, _  = process_data_topo(data, from_train=model_wrapped.from_train)
