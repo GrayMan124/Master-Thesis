@@ -97,8 +97,8 @@ def run_test(model,loader,device,test_name):
     accuracy = 100* correct / total
     
     print("\n --- Test Complete ---")
-    print(f"Total Samples: {total}")
-    print(f"Total correct: {correct}")
+    # print(f"Total Samples: {total}")
+    # print(f"Total correct: {correct}")
     print(f"Accuracy: {accuracy:.2f}")
     json_dict = {
         'test_name': test_name,
@@ -135,14 +135,14 @@ if __name__ == '__main__':
         processed_data, _  = process_data_topo(data, from_train=model_wrapped.from_train)
         
         data_set = MyDataset(processed_data,y)
-        trainloader = torch.utils.data.DataLoader(data_set, batch_size=32,shuffle=True, num_workers=1)
+        data_loader = torch.utils.data.DataLoader(data_set, batch_size=32,shuffle=True, num_workers=1)
 
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         # print(f'Using device: {device}')
 
         model_wrapped.to(device)
 
-        results = run_test(model_wrapped,trainloader,device,corruption_type)
+        results = run_test(model_wrapped,data_loader,device,corruption_type)
         results_to_json.append(results)
 
     with open(f'./results/benchmark_cifar10c/{args.name}.json','w') as file:
