@@ -119,6 +119,7 @@ if __name__ == '__main__':
     # x,y = load_cifar10c(n_examples=10000,corruptions=all_corruption_types,severity=1)
     results_to_json = []
     for corruption_type in all_corruption_types:
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         
         model_saving_path = 'models/saved_models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
         
@@ -137,7 +138,6 @@ if __name__ == '__main__':
         data_set = MyDataset(processed_data,y)
         data_loader = torch.utils.data.DataLoader(data_set, batch_size=32,shuffle=True, num_workers=1)
 
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         # print(f'Using device: {device}')
 
         model_wrapped.to(device)
