@@ -57,6 +57,19 @@ class Block(nn.Module):
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
         self.bn2 = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU()
+    
+    def forward(self, x):
+        identity = x
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.conv2(x)
+        x = self.bn2(x)
+        if self.identity_downsample is not None:
+            identity = self.identity_downsample(identity)
+        x += identity
+        x = self.relu(x)
+        return x
 
 #Base ResNet-18
 class ResNet_18(nn.Module):
