@@ -282,7 +282,7 @@ if __name__ == "__main__":
 
         testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                                download=True, transform=transform)
-        
+        final_trainset = [trainset] 
         if args.aug > 0:
             
             if args.aug_type =='all':
@@ -333,20 +333,16 @@ if __name__ == "__main__":
 
 
             aug_targets = aug_set.targets[:slice_size]
+            num_aug_samples = int(args.aug * len(aug_set))
 
-            
-            subset_train = [trainset.dataset[i] for i in trainset.indices]
+            aug_indices = list(range(num_aug_samples))
+            aug_subset = Subset(aug_set, aug_indices)
 
+            final_trainset.append(aug_subset)
 
-            subset_train_data = [sample[0] for sample in subset_train]
-            subset_train_label = [sample[1] for sample in subset_train]
+        final_train = ConcatDataset(final_trainset)  
 
-            subset_train_my_data = MyDataset(subset_train_data,subset_train_label)
-            
-            trainset = ConcatDataset([aug_set,subset_train_my_data])
-        
-
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
+        trainloader = torch.utils.data.DataLoader(final_train, batch_size=args.batch_size,
                                                               shuffle=True, num_workers=args.num_workers)
 
         valloader = torch.utils.data.DataLoader(valset, batch_size=args.batch_size,
