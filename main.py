@@ -255,6 +255,16 @@ if __name__ == "__main__":
                 with open(aug_set_target_path, 'wb') as f:
                     aug_set_target = pickle.dump(aug_targets,f)
 
+            print('Using the datasets WITH the topological features')
+
+            trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
+                                                        shuffle=True, num_workers=args.num_workers)
+
+            valloader = torch.utils.data.DataLoader(valset, batch_size=args.batch_size,
+
+                                                                shuffle=True, num_workers=args.num_workers)
+            testloader = torch.utils.data.DataLoader(testset, batch_size=64,
+                                                 shuffle=False, num_workers=args.num_workers)
 
     elif args.model == 'ResNet':
         print('Using the datasets WITHOUT the topological features')
@@ -333,7 +343,7 @@ if __name__ == "__main__":
 
             subset_train_my_data = MyDataset(subset_train_data,subset_train_label)
             
-            trainset = ConcatDataset([aug_data_set,subset_train_my_data])
+            trainset = ConcatDataset([aug_set,subset_train_my_data])
         
 
         trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
@@ -344,19 +354,6 @@ if __name__ == "__main__":
 
         testloader = torch.utils.data.DataLoader(testset, batch_size=64,
                                                          shuffle=False, num_workers=args.num_workers)
-
-    else: #Creating the dataset Loaders with the topological options
-        print('Using the datasets WITH the topological features')
-
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
-                                                      shuffle=True, num_workers=args.num_workers)
-
-        valloader = torch.utils.data.DataLoader(valset, batch_size=args.batch_size,
-
-                                                              shuffle=True, num_workers=args.num_workers)
-        testloader = torch.utils.data.DataLoader(testset, batch_size=64,
-                                                 shuffle=False, num_workers=args.num_workers)
-
 
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
