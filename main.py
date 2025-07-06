@@ -287,9 +287,9 @@ if __name__ == "__main__":
             
             if args.aug_type =='all':
                 transform_aug = transforms.Compose([
+                        transforms.RandomResizedCrop(6), # Randomly crop the image with padding
                         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
                         transforms.RandomVerticalFlip(),
-                        # transforms.RandomResizedCrop(6), # Randomly crop the image with padding
                         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
                         transforms.RandomRotation(15),        # Randomly rotate the image
                         transforms.GaussianBlur((5,5)),
