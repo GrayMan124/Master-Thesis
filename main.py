@@ -365,6 +365,8 @@ if __name__ == "__main__":
             print(f"Image tensor data type: {images.dtype}")
         except Exception as e:
             print(f"An error occurred while fetching a batch: {e}")
+            print(images)
+            # print(labels)
 
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
