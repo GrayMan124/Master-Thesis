@@ -287,6 +287,8 @@ if __name__ == "__main__":
             
             if args.aug_type =='all':
                 transform_aug = transforms.Compose([
+                        transforms.ToTensor(),
+                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
                         transforms.RandomVerticalFlip(),
                         transforms.RandomErasing(),
@@ -294,9 +296,7 @@ if __name__ == "__main__":
                         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
                         transforms.RandomRotation(15),        # Randomly rotate the image
                         transforms.GaussianBlur((5,5)),
-                        transforms.RandomPerspective(),
-                        transforms.ToTensor(),
-                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                        transforms.RandomPerspective()
                     ])
                 
             elif args.aug_type =='non-topo':
