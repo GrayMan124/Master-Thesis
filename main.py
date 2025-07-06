@@ -99,163 +99,164 @@ if __name__ == "__main__":
     print('Trying to load the data')
 
     #loading the data
-    try:
-        with open(train_set_path, 'rb') as f:
-            train_set = pickle.load(f)
+    if args.model != 'ResNet':
+        try:
+            with open(train_set_path, 'rb') as f:
+                train_set = pickle.load(f)
 
-        with open(train_set_target_path, 'rb') as f:
-            train_set_target = pickle.load(f)
+            with open(train_set_target_path, 'rb') as f:
+                train_set_target = pickle.load(f)
 
-        with open(test_set_path, 'rb') as f:
-            test_set = pickle.load(f)
+            with open(test_set_path, 'rb') as f:
+                test_set = pickle.load(f)
 
-        with open(test_set_target_path, 'rb') as f:
-            test_set_target = pickle.load(f)
-
-
-        trainset = MyDataset(train_set,train_set_target)
-
-        #Splitting train set into validation set
-        train_size = int((1 - args.val_size) * len(trainset))
-        test_size = len(trainset) - train_size
-
-        trainset, valset  = random_split(trainset, [train_size, test_size])
-        
-        testset = MyDataset(test_set,test_set_target)
-        
+            with open(test_set_target_path, 'rb') as f:
+                test_set_target = pickle.load(f)
 
 
-        #Loading augmented data
-        if args.aug > 0:
-            with open(aug_set_path, 'rb') as f:
-                aug_set = pickle.load(f)
+            trainset = MyDataset(train_set,train_set_target)
+
+            #Splitting train set into validation set
+            train_size = int((1 - args.val_size) * len(trainset))
+            test_size = len(trainset) - train_size
+
+            trainset, valset  = random_split(trainset, [train_size, test_size])
             
-            with open(aug_set_target_path, 'rb') as f:
-                aug_set_target = pickle.load(f)
+            testset = MyDataset(test_set,test_set_target)
             
 
-            aug_data_set = MyDataset(aug_set,aug_set_target)
-            
-            #Transforming the train set tu be combined with the augmentation set later
-            subset_train = [trainset.dataset[i] for i in trainset.indices]
 
-            subset_train_data = [sample[0] for sample in subset_train]
-            subset_train_label = [sample[1] for sample in subset_train]
-
-            subset_train_my_data = MyDataset(subset_train_data,subset_train_label)
-
-            #Final train set with the augmentation
-            trainset = ConcatDataset([aug_data_set,subset_train_my_data])
-
-
-        print('Data loading succesfull')
-
-    except:
-        print('Failed to load the data, processing the data and saving')
-        
-        trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
-                                        download=True)
-        
-        data_fin_train, from_train = process_data_topo(trainset)
-
-        with open(train_set_path, 'wb') as f:
-            pickle.dump(data_fin_train, f)
-
-        with open(train_set_target_path, 'wb') as f:
-            pickle.dump(trainset.targets, f)
-
-        trainset_main = MyDataset(data_fin_train,trainset.targets)
-
-        train_size = int((1-args.val_size) * len(trainset))
-        test_size = len(trainset) - train_size
-
-        trainset, valset  = random_split(trainset_main, [train_size, test_size])
-        
-        testset = torchvision.datasets.CIFAR10(root='./data', train=False,
-                                               download=True)
-        
-        data_fin_test = process_data_topo(testset,train_set= False, from_train = from_train)
-
-
-        with open(test_set_path, 'wb') as f:
-            pickle.dump(data_fin_test, f)
-
-        with open(test_set_target_path, 'wb') as f:
-            pickle.dump(testset.targets, f)
-
-        testset = MyDataset(data_fin_test,testset.targets)
-        
-        if args.aug > 0:
-            
-            if args.aug_type =='all':
-                transform_aug = transforms.Compose([
-                        transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
-                        transforms.RandomVerticalFlip(),
-                        transforms.RandomErasing(),
-                        transforms.RandomResizedCrop(6), # Randomly crop the image with padding
-                        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
-                        transforms.RandomRotation(15),        # Randomly rotate the image
-                        transforms.GaussianBlur((5,5)),
-                        transforms.RandomPerspective()
-                    ])
+            #Loading augmented data
+            if args.aug > 0:
+                with open(aug_set_path, 'rb') as f:
+                    aug_set = pickle.load(f)
                 
-            elif args.aug_type =='non-topo':
-                transform_aug = transforms.Compose([
-                        transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
-                        transforms.RandomVerticalFlip(),
-                        # transforms.RandomResizedCrop(16, padding=4), # Randomly crop the image with padding
-                        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
-                        # transforms.RandomRotation(15),        # Randomly rotate the image
-                        transforms.GaussianBlur((5,5))
-                    ])
+                with open(aug_set_target_path, 'rb') as f:
+                    aug_set_target = pickle.load(f)
                 
-            elif args.aug_type =='topo':
-                transform_aug = transforms.Compose([
-                        # transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
-                        # transforms.RandomVerticalFlip(),
-                        transforms.RandomErasing(),
-                        transforms.RandomResizedCrop(6), # Randomly crop the image with padding
-                        # transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
-                        transforms.RandomRotation(15),        # Randomly rotate the image
-                        transforms.RandomPerspective()
-                        # transforms.GaussianBlur((5,5))
-                    ])
-    
-            aug_set = torchvision.datasets.CIFAR10(root='./data', train=True,
-                                               download=True, transform = transform_aug )
+
+                aug_data_set = MyDataset(aug_set,aug_set_target)
+                
+                #Transforming the train set tu be combined with the augmentation set later
+                subset_train = [trainset.dataset[i] for i in trainset.indices]
+
+                subset_train_data = [sample[0] for sample in subset_train]
+                subset_train_label = [sample[1] for sample in subset_train]
+
+                subset_train_my_data = MyDataset(subset_train_data,subset_train_label)
+
+                #Final train set with the augmentation
+                trainset = ConcatDataset([aug_data_set,subset_train_my_data])
+
+
+            print('Data loading succesfull')
+
+        except:
+            print('Failed to load the data, processing the data and saving')
             
-
-            slice_size = int(args.aug * len(aug_set))
-
-
-            aug_targets = aug_set.targets[:slice_size]
-
+            trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
+                                            download=True)
             
-            subset_train = [trainset.dataset[i] for i in trainset.indices]
+            data_fin_train, from_train = process_data_topo(trainset)
 
+            with open(train_set_path, 'wb') as f:
+                pickle.dump(data_fin_train, f)
 
-            subset_train_data = [sample[0] for sample in subset_train]
-            subset_train_label = [sample[1] for sample in subset_train]
+            with open(train_set_target_path, 'wb') as f:
+                pickle.dump(trainset.targets, f)
 
-            subset_train_my_data = MyDataset(subset_train_data,subset_train_label)
-            aug_set = process_data_topo(aug_set, train_set= False, from_train = from_train, slice = slice_size)
+            trainset_main = MyDataset(data_fin_train,trainset.targets)
 
+            train_size = int((1-args.val_size) * len(trainset))
+            test_size = len(trainset) - train_size
 
-            aug_data_set = MyDataset(aug_set,aug_targets)
-
-
-            print("Priting the samples from the cocnatenated dataset")
-            trainset = ConcatDataset([aug_data_set,subset_train_my_data])
-            print(f'Trainset: {trainset}')
-
-            with open(aug_set_path, 'wb') as f:
-                aug_set = pickle.dump(aug_set,f)
+            trainset, valset  = random_split(trainset_main, [train_size, test_size])
             
-            with open(aug_set_target_path, 'wb') as f:
-                aug_set_target = pickle.dump(aug_targets,f)
+            testset = torchvision.datasets.CIFAR10(root='./data', train=False,
+                                                download=True)
+            
+            data_fin_test = process_data_topo(testset,train_set= False, from_train = from_train)
 
 
-    if args.model == 'ResNet':
+            with open(test_set_path, 'wb') as f:
+                pickle.dump(data_fin_test, f)
+
+            with open(test_set_target_path, 'wb') as f:
+                pickle.dump(testset.targets, f)
+
+            testset = MyDataset(data_fin_test,testset.targets)
+            
+            if args.aug > 0:
+                
+                if args.aug_type =='all':
+                    transform_aug = transforms.Compose([
+                            transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
+                            transforms.RandomVerticalFlip(),
+                            transforms.RandomErasing(),
+                            transforms.RandomResizedCrop(6), # Randomly crop the image with padding
+                            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+                            transforms.RandomRotation(15),        # Randomly rotate the image
+                            transforms.GaussianBlur((5,5)),
+                            transforms.RandomPerspective()
+                        ])
+                    
+                elif args.aug_type =='non-topo':
+                    transform_aug = transforms.Compose([
+                            transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
+                            transforms.RandomVerticalFlip(),
+                            # transforms.RandomResizedCrop(16, padding=4), # Randomly crop the image with padding
+                            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+                            # transforms.RandomRotation(15),        # Randomly rotate the image
+                            transforms.GaussianBlur((5,5))
+                        ])
+                    
+                elif args.aug_type =='topo':
+                    transform_aug = transforms.Compose([
+                            # transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
+                            # transforms.RandomVerticalFlip(),
+                            transforms.RandomErasing(),
+                            transforms.RandomResizedCrop(6), # Randomly crop the image with padding
+                            # transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+                            transforms.RandomRotation(15),        # Randomly rotate the image
+                            transforms.RandomPerspective()
+                            # transforms.GaussianBlur((5,5))
+                        ])
+        
+                aug_set = torchvision.datasets.CIFAR10(root='./data', train=True,
+                                                download=True, transform = transform_aug )
+                
+
+                slice_size = int(args.aug * len(aug_set))
+
+
+                aug_targets = aug_set.targets[:slice_size]
+
+                
+                subset_train = [trainset.dataset[i] for i in trainset.indices]
+
+
+                subset_train_data = [sample[0] for sample in subset_train]
+                subset_train_label = [sample[1] for sample in subset_train]
+
+                subset_train_my_data = MyDataset(subset_train_data,subset_train_label)
+                aug_set = process_data_topo(aug_set, train_set= False, from_train = from_train, slice = slice_size)
+
+
+                aug_data_set = MyDataset(aug_set,aug_targets)
+
+
+                print("Priting the samples from the cocnatenated dataset")
+                trainset = ConcatDataset([aug_data_set,subset_train_my_data])
+                print(f'Trainset: {trainset}')
+
+                with open(aug_set_path, 'wb') as f:
+                    aug_set = pickle.dump(aug_set,f)
+                
+                with open(aug_set_target_path, 'wb') as f:
+                    aug_set_target = pickle.dump(aug_targets,f)
+
+
+    elif args.model == 'ResNet':
         print('Using the datasets WITHOUT the topological features')
         transform = transforms.Compose(
             [transforms.ToTensor(),
