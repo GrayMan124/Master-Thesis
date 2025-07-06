@@ -272,17 +272,17 @@ if __name__ == "__main__":
             [transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-        trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
+        source_trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
                                         download=True, transform=transform)
 
-        train_size = int(0.8 * len(trainset))
-        test_size = len(trainset) - train_size
+        train_size = int(0.8 * len(source_trainset))
+        test_size = len(source_trainset) - train_size
 
-        trainset, valset  = random_split(trainset, [train_size, test_size])
+        trainset, valset  = random_split(source_trainset, [train_size, test_size])
 
         testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                                download=True, transform=transform)
-        final_trainset = [trainset] 
+        datasets_to_combine = [trainset] 
         if args.aug > 0:
             
             if args.aug_type =='all':
@@ -338,9 +338,9 @@ if __name__ == "__main__":
             aug_indices = list(range(num_aug_samples))
             aug_subset = Subset(aug_set, aug_indices)
 
-            final_trainset.append(aug_subset)
+            datasets_to_combine.append(aug_subset)
 
-        final_train = ConcatDataset(final_trainset)  
+        final_train = ConcatDataset(datasets_to_combine)  
 
         trainloader = torch.utils.data.DataLoader(final_train, batch_size=args.batch_size,
                                                               shuffle=True, num_workers=args.num_workers)
