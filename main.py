@@ -66,6 +66,14 @@ else:
 
 
 
+def collate_fn(batch):
+  return {
+      'pixel_values': torch.stack([x['pixel_values'] for x in batch]),
+      'labels': torch.tensor([x['labels'] for x in batch])
+    }
+
+
+
 
 
 def layer_from_config(layer_config):
@@ -287,13 +295,13 @@ if __name__ == "__main__":
             
             if args.aug_type =='all':
                 transform_aug = transforms.Compose([
-                        transforms.RandomResizedCrop(6), # Randomly crop the image with padding
                         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
                         transforms.RandomVerticalFlip(),
                         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
                         transforms.RandomRotation(15),        # Randomly rotate the image
                         transforms.GaussianBlur((5,5)),
                         transforms.RandomPerspective(),
+                        transforms.RandomResizedCrop(6), # Randomly crop the image with padding
                         transforms.ToTensor(),
                         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                         transforms.RandomErasing()
@@ -343,7 +351,7 @@ if __name__ == "__main__":
         final_train = ConcatDataset(datasets_to_combine)  
         print(f"concatenated datasets: {datasets_to_combine}")
         trainloader = torch.utils.data.DataLoader(final_train, batch_size=args.batch_size,
-                                                              shuffle=True, num_workers=args.num_workers)
+                                                              shuffle=True, num_workers=args.num_workers,collate_fn=collate_fn)
 
         valloader = torch.utils.data.DataLoader(valset, batch_size=args.batch_size,
                                                               shuffle=True, num_workers=args.num_workers)
