@@ -341,7 +341,7 @@ if __name__ == "__main__":
             datasets_to_combine.append(aug_subset)
 
         final_train = ConcatDataset(datasets_to_combine)  
-
+        print(f"concatenated datasets: {datasets_to_combine}")
         trainloader = torch.utils.data.DataLoader(final_train, batch_size=args.batch_size,
                                                               shuffle=True, num_workers=args.num_workers)
 
