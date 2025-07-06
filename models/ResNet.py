@@ -57,6 +57,7 @@ class Block(nn.Module):
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
         self.bn2 = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU()
+        self.identity_downsample = identity_downsample
     
     def forward(self, x):
         identity = x
