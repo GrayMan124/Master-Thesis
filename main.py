@@ -187,7 +187,6 @@ if __name__ == "__main__":
         
         if args.aug > 0:
             
-
             if args.aug_type =='all':
                 transform_aug = transforms.Compose([
                         transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
@@ -210,7 +209,6 @@ if __name__ == "__main__":
                         transforms.GaussianBlur((5,5))
                     ])
                 
-            #randomblackout,MixUP, 
             elif args.aug_type =='topo':
                 transform_aug = transforms.Compose([
                         # transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
@@ -273,6 +271,69 @@ if __name__ == "__main__":
 
         testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                                download=True, transform=transform)
+        
+        if args.aug > 0:
+            
+            if args.aug_type =='all':
+                transform_aug = transforms.Compose([
+                        transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
+                        transforms.RandomVerticalFlip(),
+                        transforms.RandomErasing(),
+                        transforms.RandomResizedCrop(6), # Randomly crop the image with padding
+                        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+                        transforms.RandomRotation(15),        # Randomly rotate the image
+                        transforms.GaussianBlur((5,5)),
+                        transforms.RandomPerspective(),
+                        transforms.ToTensor(),
+                        transforms.Normalize()
+                    ])
+                
+            elif args.aug_type =='non-topo':
+                transform_aug = transforms.Compose([
+                        transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
+                        transforms.RandomVerticalFlip(),
+                        # transforms.RandomResizedCrop(16, padding=4), # Randomly crop the image with padding
+                        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+                        # transforms.RandomRotation(15),        # Randomly rotate the image
+                        transforms.GaussianBlur((5,5)),
+                        transforms.ToTensor(),
+                        transforms.Normalize()
+                    ])
+                
+            elif args.aug_type =='topo':
+                transform_aug = transforms.Compose([
+                        # transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
+                        # transforms.RandomVerticalFlip(),
+                        transforms.RandomErasing(),
+                        transforms.RandomResizedCrop(6), # Randomly crop the image with padding
+                        # transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+                        transforms.RandomRotation(15),        # Randomly rotate the image
+                        transforms.RandomPerspective(),
+                        # transforms.GaussianBlur((5,5))
+                        transforms.ToTensor(),
+                        transforms.Normalize()
+                    ])
+    
+            aug_set = torchvision.datasets.CIFAR10(root='./data', train=True,
+                                               download=True, transform = transform_aug )
+            
+
+            slice_size = int(args.aug * len(aug_set))
+
+
+            aug_targets = aug_set.targets[:slice_size]
+
+            
+            subset_train = [trainset.dataset[i] for i in trainset.indices]
+
+
+            subset_train_data = [sample[0] for sample in subset_train]
+            subset_train_label = [sample[1] for sample in subset_train]
+
+            subset_train_my_data = MyDataset(subset_train_data,subset_train_label)
+            
+            trainset = ConcatDataset([aug_data_set,subset_train_my_data])
+        
 
         trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
                                                               shuffle=True, num_workers=args.num_workers)
