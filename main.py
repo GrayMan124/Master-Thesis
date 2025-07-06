@@ -351,6 +351,13 @@ if __name__ == "__main__":
         testloader = torch.utils.data.DataLoader(testset, batch_size=64,
                                                          shuffle=False, num_workers=args.num_workers)
 
+        try:
+            images, labels = next(iter(trainloader))
+            print(f"Successfully fetched a batch of images with shape: {images.shape}")
+            print(f"Image tensor data type: {images.dtype}")
+        except Exception as e:
+            print(f"An error occurred while fetching a batch: {e}")
+
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f'Using device: {device}')
