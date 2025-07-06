@@ -302,6 +302,9 @@ if __name__ == "__main__":
                         transforms.GaussianBlur((5,5)),
                         transforms.RandomPerspective(),
                         transforms.RandomResizedCrop(6), # Randomly crop the image with padding
+
+                        transforms.Resize((32,32)),
+                    
                         transforms.ToTensor(),
                         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                         transforms.RandomErasing()
@@ -351,7 +354,7 @@ if __name__ == "__main__":
         final_train = ConcatDataset(datasets_to_combine)  
         print(f"concatenated datasets: {datasets_to_combine}")
         trainloader = torch.utils.data.DataLoader(final_train, batch_size=args.batch_size,
-                                                              shuffle=True, num_workers=args.num_workers,collate_fn=collate_fn)
+                                                              shuffle=True, num_workers=args.num_workers)#,collate_fn=collate_fn)
 
         valloader = torch.utils.data.DataLoader(valset, batch_size=args.batch_size,
                                                               shuffle=True, num_workers=args.num_workers)
