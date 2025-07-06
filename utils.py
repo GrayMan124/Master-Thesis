@@ -91,7 +91,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=50, is_ince
     best_acc = 0.0
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)
-    lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, verbose=True)
+    lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)#, verbose=True)
 
     train_acc = 0.0
     train_loss = 10
@@ -113,11 +113,13 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=50, is_ince
             for inputs, labels in tqdm(dataloaders[phase]): # Iterate over data
                 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
                 # inputs = transforms.functional.resize(inputs, (112, 112))
-                x1,x2 = inputs
-                x1.to(device)
-                x2.to(device)
-                inputs = (x1,x2)
-
+                if args.model != 'ResNet':
+                    x1,x2 = inputs
+                    x1.to(device)
+                    x2.to(device)
+                    inputs = (x1,x2)
+                else:
+                    inputs = inputs.to(device)
                 labels = labels.to(device)
 
                 optimizer.zero_grad() # Zero the parameter gradients
