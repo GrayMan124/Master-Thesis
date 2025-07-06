@@ -286,7 +286,7 @@ if __name__ == "__main__":
                         transforms.GaussianBlur((5,5)),
                         transforms.RandomPerspective(),
                         transforms.ToTensor(),
-                        transforms.Normalize()
+                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                     ])
                 
             elif args.aug_type =='non-topo':
@@ -298,7 +298,7 @@ if __name__ == "__main__":
                         # transforms.RandomRotation(15),        # Randomly rotate the image
                         transforms.GaussianBlur((5,5)),
                         transforms.ToTensor(),
-                        transforms.Normalize()
+                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                     ])
                 
             elif args.aug_type =='topo':
@@ -312,7 +312,7 @@ if __name__ == "__main__":
                         transforms.RandomPerspective(),
                         # transforms.GaussianBlur((5,5))
                         transforms.ToTensor(),
-                        transforms.Normalize()
+                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                     ])
     
             aug_set = torchvision.datasets.CIFAR10(root='./data', train=True,
