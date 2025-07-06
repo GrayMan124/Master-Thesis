@@ -361,12 +361,10 @@ if __name__ == "__main__":
 
         try:
             images, labels = next(iter(trainloader))
-            print(f"Successfully fetched a batch of images with shape: {images.shape}")
+            # print(f"Successfully fetched a batch of images with shape: {images.shape}")
             print(f"Image tensor data type: {images.dtype}")
         except Exception as e:
             print(f"An error occurred while fetching a batch: {e}")
-            print(images)
-            # print(labels)
 
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
