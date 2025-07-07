@@ -318,6 +318,7 @@ if __name__ == "__main__":
                         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
                         # transforms.RandomRotation(15),        # Randomly rotate the image
                         transforms.GaussianBlur((5,5)),
+                        transforms.Resize((32,32)),
                         transforms.ToTensor(),
                         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                     ])
@@ -331,6 +332,7 @@ if __name__ == "__main__":
                         transforms.RandomRotation(15),        # Randomly rotate the image
                         transforms.RandomPerspective(),
                         # transforms.GaussianBlur((5,5))
+                        transforms.Resize((32,32)),
                         transforms.ToTensor(),
                         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                         transforms.RandomErasing(),
