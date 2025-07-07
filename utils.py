@@ -47,6 +47,8 @@ def test_model(model, dataloader,criterion, optimizer):
             x1.to(device)
             x2.to(device)
             inputs = (x1,x2)
+        else:
+            inputs = inputs.to(device)
 
         labels = labels.to(device)
         optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)

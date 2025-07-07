@@ -124,7 +124,7 @@ class ResNet_18(nn.Module):
     def identity_downsample(self, in_channels, out_channels):
 
         return nn.Sequential(
-            # nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1),
-            nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=2),# padding=1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1),
+            # nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=2),# padding=1),
             nn.BatchNorm2d(out_channels)
         )

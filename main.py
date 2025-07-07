@@ -326,14 +326,14 @@ if __name__ == "__main__":
                 transform_aug = transforms.Compose([
                         # transforms.RandomHorizontalFlip(),    # Randomly flip the image horizontally
                         # transforms.RandomVerticalFlip(),
-                        transforms.RandomErasing(),
                         transforms.RandomResizedCrop(6), # Randomly crop the image with padding
                         # transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
                         transforms.RandomRotation(15),        # Randomly rotate the image
                         transforms.RandomPerspective(),
                         # transforms.GaussianBlur((5,5))
                         transforms.ToTensor(),
-                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                        transforms.RandomErasing(),
                     ])
     
             aug_set = torchvision.datasets.CIFAR10(root='./data', train=True,
