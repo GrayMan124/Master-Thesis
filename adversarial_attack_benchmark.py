@@ -69,6 +69,8 @@ class ModelWrapper(nn.Module):
         if x.device != self.model.device:
             x = x.to(self.model.device)
         
+        
+        normalization = transforms.Compose([transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
         current_device = x.device
         
         x_detached = x.detach().cpu()
@@ -76,6 +78,7 @@ class ModelWrapper(nn.Module):
         topo_features = process_topo_batch(numpy_batch, self.topo_vectorization, self.from_train)
 
         topo_features = topo_features.to(current_device)
+        x = normalization(x)
         return self.model((x,topo_features))
 
 
