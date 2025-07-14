@@ -19,9 +19,9 @@ from multiprocessing import Pool, cpu_count, set_start_method
 
 from config import args
 
-import resource
-rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
-resource.setrlimit(resource.RLIMIT_NOFILE, (4096, rlimit[1]))
+# import resource
+# rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
+# resource.setrlimit(resource.RLIMIT_NOFILE, (4096, rlimit[1]))
 
 import torch.multiprocessing
 torch.multiprocessing.set_sharing_strategy('file_system')
@@ -373,3 +373,21 @@ def process_data_topo(dataset, train_set = True, from_train = None, slice = None
 
 
 
+def process_topo_batch(numpy_batch, topo_vectorization, from_train):
+
+    
+    if args.cores > 1:
+        with Pool(args.cores) as pool:
+            results = list(pool.imap(topo_vectorization,numpy_batch))
+    else:
+        results = []
+        for sample in numpy_batch:
+            results.append(topo_vectorization(sample))
+    
+    topo_features = [item[1] for item in results]
+    tensor_topo_data = torch.stack(topo_features,dim=0)
+
+    max_val, min_val = from_train
+    stand_topo = (tensor_topo_data - min_val)/ (max_val - min_val)
+
+    return stand_topo
