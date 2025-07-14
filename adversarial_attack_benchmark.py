@@ -112,8 +112,8 @@ if __name__ == '__main__':
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
-    # model_saving_path = 'models/saved_models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
-    model_saving_path =  'models/PI_IMG_19_param.pkl'
+    model_saving_path = 'models/saved_models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
+    # model_saving_path =  'models/PI_IMG_19_param.pkl'
     if args.model =='ResNet':
         model = ResNet_18(3,10)
     elif args.model == 'TR':
