@@ -83,30 +83,16 @@ class ModelWrapper(nn.Module):
 def load_paramas(self,params_path):
     model.load_state_dict(torch.load(params_path, map_location = self.model.device))
 
-def run_test(model,x_test,y_test):
+def run_test(model,x_test,y_test,test_name):
     model.eval()
 
-    correct = 0
-    total = 0
-
     # with torch.no_grad():
-    
-    adversary = AutoAttack(model, norm='Linf', eps=8/255, version='custom', attacks_to_run=['apgd-ce', 'apgd-dlr'])
+    log_file_path = f"results/adv_eval/log_{test_name}.txt"
+
+    adversary = AutoAttack(model, norm='Linf', eps=8/255, version='custom', attacks_to_run=['apgd-ce', 'apgd-dlr','square'],log_path=log_file_path)
     adversary.apgd.n_restarts = 1
+    adversary.run_standard_evaluation(x_test,y_test)
     print("\n --- Test Complete ---")
-    x_adv = adversary.run_standard_evaluation(x_test,y_test)
-    print(x_adv)
-    # print(f"Total Samples: {total}")
-    # print(f"Total correct: {correct}")
-    # print(f"Accuracy: {accuracy:.2f}")
-    # json_dict = {
-    #     'test_name': test_name,
-    #     'accuracy': accuracy,
-    #     'total_samples': total,
-    #     'correct': correct
-    # } 
-    
-    # return json_dict    
 
 if __name__ == '__main__':
 
@@ -149,7 +135,7 @@ if __name__ == '__main__':
     
     
     results_to_json = []
-    x_test, y_test = load_cifar10(n_examples=10)    
+    x_test, y_test = load_cifar10(n_examples=1000)    
     model_wrapped = model_wrapped.to(device)
     model_wrapped.eval()
 
