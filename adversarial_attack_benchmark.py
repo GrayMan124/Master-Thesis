@@ -139,7 +139,7 @@ if __name__ == '__main__':
     model_wrapped = model_wrapped.to(device)
     model_wrapped.eval()
 
-    run_test(model_wrapped,x_test,y_test,args.model_name) 
+    run_test(model_wrapped,x_test,y_test,args.name) 
     # with open(f'./results/benchmark_cifar10c/{args.name}.json','w') as file:
         # json.dump(results_to_json,file)    
 
