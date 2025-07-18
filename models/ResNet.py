@@ -106,6 +106,7 @@ class ResNet_18(nn.Module):
 
     def forward(self, x):
 
+        x = transforms.functional.resize(x, (112, 112))
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
