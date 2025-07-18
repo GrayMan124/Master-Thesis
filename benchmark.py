@@ -125,7 +125,7 @@ if __name__ == '__main__':
     model_saving_path = 'models/saved_models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
     if args.model =='ResNet':
         model = ResNet_18(3,10)
-        model_saving_path = 'models/saved_models/_.pkl'
+        model_saving_path = 'models/saved_models/resnet_aug05_nt.pkl'
     elif args.model == 'TR':
         model = ResNet_18_Topo(3,10,device)
     elif args.model =='TBR':
