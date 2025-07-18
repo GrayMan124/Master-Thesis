@@ -88,6 +88,8 @@ def run_test(model,loader,device,test_name):
                 labels = labels.to(device)
 
                 inputs = (x1,x2)
+            else:
+                inputs = data 
             outputs = model(inputs)
 
             _, pred_class = torch.max(outputs, 1)
