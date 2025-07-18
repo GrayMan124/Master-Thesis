@@ -164,6 +164,7 @@ if __name__ == '__main__':
             data_set = MyDataset(processed_data,y)
             data_loader = torch.utils.data.DataLoader(data_set, batch_size=32,shuffle=True, num_workers=1)
         else:
+            x = x.to(device)
             data_loader= torch.utils.data.DataLoader(MyDataset(x,y),batch_size=32,shuffle=True, num_workers=1)
         # print(f'Using device: {device}')
 
