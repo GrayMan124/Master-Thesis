@@ -81,12 +81,13 @@ def run_test(model,loader,device,test_name):
 
     with torch.no_grad():
         for data, labels in tqdm(loader,desc="Testing"):
-            x1,x2 = data
-            x1 = x1.to(device)
-            x2 = x2.to(device)
-            labels = labels.to(device)
+            if args.model != 'ResNet':
+                x1,x2 = data
+                x1 = x1.to(device)
+                x2 = x2.to(device)
+                labels = labels.to(device)
 
-            inputs = (x1,x2)
+                inputs = (x1,x2)
             outputs = model(inputs)
 
             _, pred_class = torch.max(outputs, 1)
@@ -122,6 +123,7 @@ if __name__ == '__main__':
     model_saving_path = 'models/saved_models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
     if args.model =='ResNet':
         model = ResNet_18(3,10)
+        model_saving_path = 'models/saved_models/_.pkl'
     elif args.model == 'TR':
         model = ResNet_18_Topo(3,10,device)
     elif args.model =='TBR':
@@ -140,23 +142,27 @@ if __name__ == '__main__':
         print('Error - Incorrect model option')
         raise('Error - Incorrect model option')
     # return
-    model_wrapped = ModelWrapper(model,model_saving_path)
+    if args.model != 'ResNet':
+        model_wrapped = ModelWrapper(model,model_saving_path)
+    else:
+        model_wrapped = model
     results_to_json = []
     for corruption_type in all_corruption_types:
         
         x,y = load_cifar10c(n_examples=10000,corruptions=[corruption_type])
+        if args.model != 'ResNet':
+            x_np = x.numpy()
+            y_np = y.numpy()
+            x_train = transform_initial_data(x)
+            args.cores = 1
 
-        x_np = x.numpy()
-        y_np = y.numpy()
-        x_train = transform_initial_data(x)
-        args.cores = 1
-
-        data = MyDataset(x_train,y_np)
-        processed_data, _  = process_data_topo(data, from_train=model_wrapped.from_train)
+            data = MyDataset(x_train,y_np)
+            processed_data, _  = process_data_topo(data, from_train=model_wrapped.from_train)
         
-        data_set = MyDataset(processed_data,y)
-        data_loader = torch.utils.data.DataLoader(data_set, batch_size=32,shuffle=True, num_workers=1)
-
+            data_set = MyDataset(processed_data,y)
+            data_loader = torch.utils.data.DataLoader(data_set, batch_size=32,shuffle=True, num_workers=1)
+        else:
+            data_loader= torch.utils.data.DataLoader(MyDataset(x,y),batch_size=32,shuffle=True, num_workers=1)
         # print(f'Using device: {device}')
 
         model_wrapped.to(device)
@@ -167,9 +173,5 @@ if __name__ == '__main__':
     with open(f'./results/benchmark_cifar10c/{args.name}.json','w') as file:
         json.dump(results_to_json,file)    
 
-    # for model_name in ['Standard', 'Engstrom2019Robustness', 'Rice2020Overfitting', 'Carmon2019Unlabeled']:
-    #     model = load_model(model_name)
-    #     acc = clean_accuracy(model, x_test, y_test)
-    #     print('Model: {}, CIFAR-10-C accuracy: {:.1%}'.format(model_name, acc))
 
-
+# Addepalli2022Efficient_RN18, Sehwag2021Proxy_R18, Modas2021PRIMEResNet18 - models to compare the benchmark to 
