@@ -1,0 +1,14 @@
+using custom version including apgd-ce, apgd-dlr, square.
+Warning: it seems that the output is a probability distribution, please be sure that the logits are used! See flags_doc.md for details.
+initial accuracy: 85.40%
+apgd-ce - 1/4 - 204 out of 250 successfully perturbed
+apgd-ce - 2/4 - 204 out of 250 successfully perturbed
+apgd-ce - 3/4 - 206 out of 250 successfully perturbed
+apgd-ce - 4/4 - 86 out of 104 successfully perturbed
+robust accuracy after APGD-CE: 15.40% (total time 531.8 s)
+apgd-dlr - 1/1 - 102 out of 154 successfully perturbed
+robust accuracy after APGD-DLR: 5.20% (total time 629.0 s)
+square - 1/1 - 0 out of 52 successfully perturbed
+robust accuracy after SQUARE: 5.20% (total time 2114.7 s)
+max L2 perturbation: 0.50000, nan in tensor: 0, max: 1.00000, min: 0.00000
+robust accuracy: 5.20%
