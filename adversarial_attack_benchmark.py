@@ -81,7 +81,15 @@ class ModelWrapper(nn.Module):
         x = normalization(x)
         return self.model((x,topo_features))
 
-
+class ResNet_Wrapper(nn.Module):
+    def __init__(self, model,  *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.model = model 
+    
+    def forward(self,x):
+        normalization = transforms.Compose([transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        x = normalization(x)
+        return self.model(x)
 
 def load_paramas(self,params_path):
     model.load_state_dict(torch.load(params_path, map_location = self.model.device))
@@ -90,9 +98,9 @@ def run_test(model,x_test,y_test,test_name):
     model.eval()
 
     # with torch.no_grad():
-    log_file_path = f"results/adv_eval/log_{test_name}.txt"
+    log_file_path = f"results/adv_eval_inf_dlr/log_{test_name}.txt"
 
-    adversary = AutoAttack(model, norm='Linf', eps=8/255, version='custom', attacks_to_run=['apgd-ce', 'apgd-dlr','square'],log_path=log_file_path)
+    adversary = AutoAttack(model, norm='Linf', eps=8/255, version='custom', attacks_to_run=['apgd-dlr'],log_path=log_file_path)
     adversary.apgd.n_restarts = 1
     adversary.run_standard_evaluation(x_test,y_test)
     print("\n --- Test Complete ---")
@@ -105,6 +113,7 @@ if __name__ == '__main__':
     # model_saving_path =  'models/PI_IMG_19_param.pkl'
     if args.model =='ResNet':
         model = ResNet_18(3,10)
+        model_saving_path = 'models/saved_models/resnet_aug_05_nt.pkl'
     elif args.model == 'TR':
         model = ResNet_18_Topo(3,10,device)
     elif args.model =='TBR':
@@ -132,10 +141,12 @@ if __name__ == '__main__':
     model.device = device 
     model.load_state_dict(torch.load(model_saving_path, map_location = device))
     model.eval()
-    
-    _, from_train = process_data_topo(trainset)
-    model_wrapped = ModelWrapper(model,model_saving_path, from_train)
-    
+
+    if args.model != 'ResNet': 
+        _, from_train = process_data_topo(trainset)
+        model_wrapped = ModelWrapper(model,model_saving_path, from_train)
+    else:
+        model_wrapped = ResNet_Wrapper(model)
     
     results_to_json = []
     x_test, y_test = load_cifar10(n_examples=1000)    
