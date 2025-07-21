@@ -98,9 +98,9 @@ def run_test(model,x_test,y_test,test_name):
     model.eval()
 
     # with torch.no_grad():
-    log_file_path = f"results/adv_eval_inf_dlr/log_{test_name}.txt"
+    log_file_path = f"results/adv_eval_inf_square/log_{test_name}.txt"
 
-    adversary = AutoAttack(model, norm='Linf', eps=8/255, version='custom', attacks_to_run=['apgd-dlr'],log_path=log_file_path)
+    adversary = AutoAttack(model, norm='Linf', eps=8/255, version='custom', attacks_to_run=['square'],log_path=log_file_path)
     adversary.apgd.n_restarts = 1
     adversary.run_standard_evaluation(x_test,y_test)
     print("\n --- Test Complete ---")
