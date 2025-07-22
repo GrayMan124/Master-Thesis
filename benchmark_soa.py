@@ -153,8 +153,8 @@ if __name__ == '__main__':
         # acc = clean_accuracy(model, x_test, y_test)
         # print(f'Model: {model_name}, CIFAR-10-C accuracy: {np.mean(acc):.1%}')
 
-        log_file_path = f"./results/{model_name}_linf.txt"
-        adversary = AutoAttack(model, norm='Linf', eps=8/255, version='custom', attacks_to_run=['apgd-ce','apgd-t'],log_path=log_file_path)
+        log_file_path = f"./results/{model_name}_l2.txt"
+        adversary = AutoAttack(model, norm='L2', eps=0.5 , version='custom', attacks_to_run=['apgd-ce','apgd-t'],log_path=log_file_path)
         adversary.apgd.n_restarts = 1
         adversary.run_standard_evaluation(x_test,y_test)
 # Addepalli2022Efficient_RN18, Sehwag2021Proxy_R18, Modas2021PRIMEResNet18 - models to compare the benchmark to 
