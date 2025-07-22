@@ -146,6 +146,7 @@ if __name__ == '__main__':
         print(f"Running model: {model_name}")
         # x_test, y_test = load_cifar10c(n_examples=10000, corruptions = all_corruption_types)
         model = load_model(model_name, dataset='cifar10')
+        model.to(device)
         x_test, y_test = load_cifar10(n_examples=1000)    
         x_test = x_test.to(device)
         y_test = y_test.to(device)
