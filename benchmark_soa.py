@@ -3,6 +3,7 @@ import torch
 from robustbench.utils import load_model, clean_accuracy
 import time
 
+from autoattack import AutoAttack
 from config import args
 from data_processing import process_data_topo
 from models.ResNetPIBlock import ResNet_18_PIBlock
@@ -143,9 +144,14 @@ if __name__ == '__main__':
     for model_name in ['Addepalli2022Efficient_RN18', 'Sehwag2021Proxy_R18',
                    'Rade2021Helper_R18_ddpm']:
         print(f"Running model: {model_name}")
-        x_test, y_test = load_cifar10c(n_examples=10000, corruptions = all_corruption_types)
+        # x_test, y_test = load_cifar10c(n_examples=10000, corruptions = all_corruption_types)
         model = load_model(model_name, dataset='cifar10')
-        acc = clean_accuracy(model, x_test, y_test)
-        print(f'Model: {model_name}, CIFAR-10-C accuracy: {np.mean(acc):.1%}')
+        x_test, y_test = load_cifar10(n_examples=1000)    
+        # acc = clean_accuracy(model, x_test, y_test)
+        # print(f'Model: {model_name}, CIFAR-10-C accuracy: {np.mean(acc):.1%}')
 
+        log_file_path = f"./results/{model_name}_linf.txt"
+        adversary = AutoAttack(model, norm='Linf', eps=8/255, version='custom', attacks_to_run=['apgd-ce','apgd-t','square'],log_path=log_file_path)
+        adversary.apgd.n_restarts = 1
+        adversary.run_standard_evaluation(x_test,y_test)
 # Addepalli2022Efficient_RN18, Sehwag2021Proxy_R18, Modas2021PRIMEResNet18 - models to compare the benchmark to 
