@@ -139,13 +139,16 @@ if __name__ == '__main__':
     #     json.dump(results_to_json,file)    
 
 
-    x_test, y_test = load_cifar10c(n_examples=10000, corruptions=all_corruption_types)
 
     for model_name in ['Addepalli2022Efficient_RN18', 'Sehwag2021Proxy_R18',
-                   'Modas2021PRIMEResNet18']:
+                   'Addepalli2022Efficient_RN18']:
         print(f"Running model: {model_name}")
-        model = load_model(model_name, dataset='cifar10')
-        acc = clean_accuracy(model, x_test, y_test)
-        print(f'Model: {model_name}, CIFAR-10-C accuracy: {acc:.1%}')
+        model_accs = []
+        for corruption_type in all_corruption_types:
+            x_test, y_test = load_cifar10c(n_examples=10000, corruptions = corruption_type)
+            model = load_model(model_name, dataset='cifar10')
+            acc = clean_accuracy(model, x_test, y_test)
+            model_accs.append(acc)
+        print(f'Model: {model_name}, CIFAR-10-C accuracy: {np.mean(model_accs):.1%}')
 
 # Addepalli2022Efficient_RN18, Sehwag2021Proxy_R18, Modas2021PRIMEResNet18 - models to compare the benchmark to 
