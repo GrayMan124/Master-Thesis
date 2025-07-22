@@ -141,7 +141,7 @@ if __name__ == '__main__':
 
 
     for model_name in ['Addepalli2022Efficient_RN18', 'Sehwag2021Proxy_R18',
-                   'Addepalli2022Efficient_RN18']:
+                   'Kireev2021Effectiveness_RLATAugMix']:
         print(f"Running model: {model_name}")
         x_test, y_test = load_cifar10c(n_examples=10000, corruptions = all_corruption_types)
         model = load_model(model_name, dataset='cifar10')
