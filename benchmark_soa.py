@@ -147,6 +147,8 @@ if __name__ == '__main__':
         # x_test, y_test = load_cifar10c(n_examples=10000, corruptions = all_corruption_types)
         model = load_model(model_name, dataset='cifar10')
         x_test, y_test = load_cifar10(n_examples=1000)    
+        x_test = x_test.to(device)
+        y_test = y_test.to(device)
         # acc = clean_accuracy(model, x_test, y_test)
         # print(f'Model: {model_name}, CIFAR-10-C accuracy: {np.mean(acc):.1%}')
 
