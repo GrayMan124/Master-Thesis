@@ -98,9 +98,9 @@ def run_test(model,x_test,y_test,test_name, eps):
     model.eval()
 
     # with torch.no_grad():
-    log_file_path = f"results/adv_eval_inf_square/log_{test_name}.txt"
+    log_file_path = f"results/adv_eval_inf_square/log_RT_{test_name}.txt"
 
-    adversary = AutoAttack(model, norm='Linf', eps=eps, version='custom', attacks_to_run=['apgd-ce','apgd-t','square'],log_path=log_file_path)
+    adversary = AutoAttack(model, norm='Linf', eps=eps, version='custom', attacks_to_run=['apgd-ce'],log_path=log_file_path)
     adversary.apgd.n_restarts = 1
     adversary.run_standard_evaluation(x_test,y_test)
     print("\n --- Test Complete ---")
@@ -154,7 +154,7 @@ if __name__ == '__main__':
     model_wrapped.eval()
     test_eps = [ 1/255, 2/255, 4/255, 8/255]
     for eps in test_eps:
-        run_test(model_wrapped,x_test,y_test,args.name,eps = eps) 
+        run_test(model_wrapped,x_test,y_test,args.name + str(eps*255),eps = eps) 
     # with open(f'./results/benchmark_cifar10c/{args.name}.json','w') as file:
         # json.dump(results_to_json,file)    
 
