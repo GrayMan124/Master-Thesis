@@ -1,0 +1,13 @@
+using custom version including apgd-ce, apgd-t.
+initial accuracy: 85.20%
+apgd-ce - 1/4 - 61 out of 250 successfully perturbed
+apgd-ce - 2/4 - 55 out of 250 successfully perturbed
+apgd-ce - 3/4 - 58 out of 250 successfully perturbed
+apgd-ce - 4/4 - 18 out of 102 successfully perturbed
+robust accuracy after APGD-CE: 66.00% (total time 33.7 s)
+apgd-t - 1/3 - 7 out of 250 successfully perturbed
+apgd-t - 2/3 - 5 out of 250 successfully perturbed
+apgd-t - 3/3 - 4 out of 160 successfully perturbed
+robust accuracy after APGD-T: 64.40% (total time 257.1 s)
+max L2 perturbation: 0.50000, nan in tensor: 0, max: 1.00000, min: 0.00000
+robust accuracy: 64.40%

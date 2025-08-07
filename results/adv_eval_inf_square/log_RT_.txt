@@ -1,0 +1,7 @@
+using custom version including apgd-ce, apgd-t, square.
+initial accuracy: 86.20%
+apgd-ce - 1/4 - 161 out of 250 successfully perturbed
+apgd-ce - 2/4 - 153 out of 250 successfully perturbed
+apgd-ce - 3/4 - 152 out of 250 successfully perturbed
+apgd-ce - 4/4 - 71 out of 112 successfully perturbed
+robust accuracy after APGD-CE: 32.50% (total time 37.0 s)

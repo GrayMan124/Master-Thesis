@@ -1,0 +1,10 @@
+using custom version including apgd-ce.
+Warning: it seems that the output is a probability distribution, please be sure that the logits are used! See flags_doc.md for details.
+initial accuracy: 81.90%
+apgd-ce - 1/4 - 88 out of 250 successfully perturbed
+apgd-ce - 2/4 - 90 out of 250 successfully perturbed
+apgd-ce - 3/4 - 94 out of 250 successfully perturbed
+apgd-ce - 4/4 - 23 out of 69 successfully perturbed
+robust accuracy after APGD-CE: 52.40% (total time 392.5 s)
+max Linf perturbation: 0.00392, nan in tensor: 0, max: 1.00000, min: 0.00000
+robust accuracy: 52.40%
