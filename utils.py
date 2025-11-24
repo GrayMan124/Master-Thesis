@@ -24,14 +24,71 @@ import json
 import pandas as pd
 
 from config import args
-
+from models.ResNet50 import ResNet_50
 
 model_saving_path = 'models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
 tensor_board_path = 'runs/' + args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw
 
 
 
-
+def count_parameters(model):
+    """Counts the total, trainable, and non-trainable parameters 
+    and estimates their memory usage."""
+    
+    # --- 1. Count Total and Trainable Parameters ---
+    
+    # Total parameters
+    total_params = sum(p.numel() for p in model.parameters())
+    
+    # Trainable parameters
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
+    # Non-trainable parameters
+    non_trainable_params = total_params - trainable_params
+    
+    print(f"--- Parameter Count ---")
+    print(f"Total parameters:     {total_params:,}")
+    print(f"Trainable parameters: {trainable_params:,}")
+    print(f"Non-trainable params: {non_trainable_params:,}")
+    
+    
+    # --- 2. Calculate Memory Usage ---
+    
+    # Assume default dtype is float32 (4 bytes)
+    # You can get the exact dtype from a parameter: p.dtype
+    # We'll check the first parameter's dtype as a reference
+    
+    if total_params > 0:
+        # Get dtype of the first parameter
+        param_dtype = next(model.parameters()).dtype
+        
+        if param_dtype == torch.float32:
+            bytes_per_param = 4
+        elif param_dtype == torch.float16 or param_dtype == torch.bfloat16:
+            bytes_per_param = 2
+        elif param_dtype == torch.float64:
+            bytes_per_param = 8
+        else:
+            # Fallback for other types like int, etc.
+            try:
+                bytes_per_param = torch.finfo(param_dtype).bits // 8
+            except TypeError:
+                # For non-float types like int8
+                try:
+                    bytes_per_param = torch.iinfo(param_dtype).bits // 8
+                except TypeError:
+                    bytes_per_param = 4 # Default assumption
+                    
+        total_memory_bytes = total_params * bytes_per_param
+        total_memory_mb = total_memory_bytes / (1024 ** 2)
+        
+        print(f"\n--- Memory Usage (Model Weights Only) ---")
+        print(f"Assuming all params are: {param_dtype}")
+        print(f"Bytes per parameter:   {bytes_per_param}")
+        print(f"Total memory (MB):     {total_memory_mb:.2f} MB")
+        
+    else:
+        print("\nModel has no parameters.")
 
 def test_model(model, dataloader,criterion, optimizer):
     print('Testing model')
@@ -72,8 +129,8 @@ def test_model(model, dataloader,criterion, optimizer):
 
 
 #Helper function for counting trainable parameters
-def count_parameters(model):
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+# def count_parameters(model):
+#     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
 
@@ -84,7 +141,7 @@ writer = SummaryWriter(log_dir = tensor_board_path)
 
 
 #Training function
-def train_model(model, dataloaders, criterion, optimizer, num_epochs=50, is_inception=False):
+def train_model(model, dataloaders, criterion, optimizer, num_epochs=50):
     print('Traning model')
 
     since = time.time()
@@ -136,10 +193,14 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=50, is_ince
                         loss.backward()
                         optimizer.step()
 
+                if args.model != 'ResNet':
+                    # batch_size = inputs.size(0)
+                    batch_size = inputs[0].size(0)
+                else:
+                    batch_size = inputs[0].size(0)
                 # Statistics
-                running_loss += loss.item() * inputs[0].size(0)
+                running_loss += loss.item() * batch_size 
                 running_corrects += torch.sum(preds == labels.data)
-
 
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
             epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
@@ -212,3 +273,35 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=50, is_ince
     # load best model weights
     model.load_state_dict(best_model_wts)
     return model, val_acc_history
+
+def collate_fn(batch):
+  return {
+      'pixel_values': torch.stack([x['pixel_values'] for x in batch]),
+      'labels': torch.tensor([x['labels'] for x in batch])
+    }
+
+
+def layer_from_config(layer_config):
+    layer_type = layer_config["type"]
+    params = {k: v for k, v in layer_config.items() if k != "type"}
+
+    # Dynamically instantiate the layer
+    if hasattr(nn, layer_type):
+        return getattr(nn, layer_type)(**params)
+    else:
+        raise ValueError(f"Layer type {layer_type} is not supported.")
+
+
+class MyDataset(Dataset):
+    def __init__(self, data, labels):
+        self.data = data
+        self.labels = labels
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        # Return a tuple (data, label)
+        return self.data[idx], self.labels[idx]
+
+
