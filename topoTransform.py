@@ -45,16 +45,27 @@ class AugmentAndCalculateFeatures:
         
         self.base_augmentations = transforms.Compose([
             transforms.RandomResizedCrop(224),
-            transforms.RandomHorizontalFlip()
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomVerticalFlip(),
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1), # Color adjustments
+            transforms.RandomRotation(15),        # Randomly rotate the image
+            transforms.GaussianBlur((5,5)),
+            transforms.RandomPerspective()
         ])
         
-        self.final_image_transform = transforms.Compose([
+        self.final_image_transform_train = transforms.Compose([
+            transforms.ToTensor(), # Converts (H, W, C) NumPy to (C, H, W) Tensor
+            transforms.RandomErasing(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], 
+                                 std=[0.229, 0.224, 0.225])
+        ])
+        self.final_image_transform_val = transforms.Compose([
             transforms.ToTensor(), # Converts (H, W, C) NumPy to (C, H, W) Tensor
             transforms.Normalize(mean=[0.485, 0.456, 0.406], 
                                  std=[0.229, 0.224, 0.225])
         ])
         self.pi_transform = transforms.Compose([
-            # transforms.ToTensor(),
+             # transforms.ToTensor(),
             transforms.Normalize(mean=6.56658, std = 34.323)
             ])
     def __call__(self, pil_image):
@@ -71,8 +82,10 @@ class AugmentAndCalculateFeatures:
         topo_features = self.pi_transform(process_PI(pil_image)) 
         #Add normalization here brther
 
-
-        image_tensor = self.final_image_transform(image_np)
+        if self.train:
+            image_tensor = self.final_image_transform_train(image_np)
+        else:
+            image_tensor = self.final_image_transform_val(image_np)
         
         return (image_tensor, topo_features)
 
