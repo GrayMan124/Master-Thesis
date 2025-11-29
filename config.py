@@ -32,5 +32,6 @@ argparser.add_argument("--tb_add_x", default=False, action="store_true", help="A
 argparser.add_argument("--tb_add_t", default=False, action="store_true", help="Add the topological out back into the topological resnet when using PIBlock")
 argparser.add_argument("--aug", default=0, type=float, help="Data augmentation size")
 argparser.add_argument("--aug_type", default="all", type=str, help="Data augmentation type")
+argparser.add_argument("--freeze_weights", default=False, action="store_true", help="Freeze base model wieghts")
 
 args = argparser.parse_args()

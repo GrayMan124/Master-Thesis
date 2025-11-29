@@ -155,6 +155,10 @@ class PIFineTuneModel(nn.Module):
         self.device = device
 
         self.base_model = base_model
+        if args.freeze_weights:
+            for param in self.base_model.parameters():
+                param.requires_grad = False
+
         num_features = self.base_model.fc.in_features
         self.base_model.fc = nn.Linear(num_features, hidden_size)
 
