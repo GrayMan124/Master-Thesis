@@ -5,11 +5,14 @@ import torch
 import torchvision
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, random_split
+from torch.utils.data import Dataset, random_split, DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import json
 from torchvision.datasets import Caltech256 , Caltech101
 from torchvision.models import resnet50 
+from pathlib import Path
+import glob 
+
 
 from topoTransform import get_topo_DS
 from models.PI_finetune import PIFineTuneModel
@@ -21,7 +24,7 @@ from config import args
 torch.autograd.set_detect_anomaly(True)
 torch.manual_seed(args.seed)
 
-
+# Creating saving file paths
 model_saving_path = 'models/saved_models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
 tensor_board_path = 'runs/' + args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw
 
@@ -83,13 +86,37 @@ class MyDataset(Dataset):
         # Return a tuple (data, label)
         return self.data[idx], self.labels[idx]
 
+class PrecomputedDataset(torch.utils.data.Dataset):
+    def __init__(self, data_dir, version_folders=None):
+        """
+        data_dir: Path to 'data_cache'
+        version_folders: List of subfolders to include. 
+                         For training: ['train_v0', 'train_v1', ...]
+                         For val: ['val']
+        """
+        self.files = []
+        for v_folder in version_folders:
+            # Gather all .pt files from the specified versions
+            path = Path(data_dir) / v_folder
+            self.files.extend(list(path.glob("*.pt")))
+
+    def __len__(self):
+        return len(self.files)
+
+    def __getitem__(self, idx):
+        # Load the saved tensor directly
+        # Returns ((image_tensor, topo_features), label)
+        # Note: torch.load is CPU bound, usually fast enough
+        img_tensor, topo, label = torch.load(self.files[idx])
+        return (img_tensor, topo), label
+
 #Main function
 if __name__ == "__main__":
 
     args.tbs == 'large'
     print(args)
     
-    train_loader, val_loader = get_topo_DS(dir_path= './data/', dataset= Caltech256)
+    # train_loader, val_loader = get_topo_DS(dir_path= './data/', dataset= Caltech256)
     
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f'Using device: {device}')
@@ -101,7 +128,16 @@ if __name__ == "__main__":
 
     print(f'Currenttly running model: {args.model} with {args.tv} ')
     print(f'Number of paramters: {count_parameters(model)}')
+    
+    cache_dir = './data/caltech256_processed/'
+    versions = [f'train_v{i}' for i in range(3)]
+    
+    train_ds = PrecomputedDataset(cache_dir, version_folders=versions)
+    val_ds = PrecomputedDataset(cache_dir, version_folders=['val'])
 
+    train_loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers=8)
+    val_loader = DataLoader(val_ds, batch_size=64, shuffle=False, num_workers=8)
+    
     epochs = args.epochs
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)
