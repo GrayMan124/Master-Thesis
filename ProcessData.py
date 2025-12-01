@@ -5,7 +5,7 @@ import torch
 import numpy as np 
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
-from torchvision.datasets import Caltech256 
+from torchvision.datasets import Caltech256, Food101
 from pathlib import Path
 from PIL import Image
 from tqdm import tqdm
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     args.model = "ResNet" 
 
     ds = Caltech256(root = './data/', download= False)
-
+    # ds = Food101(root = '/mnt/sam/pi_data/', download = True)
     train_ratio = 0.8
     val_ratio = 1.0 - train_ratio
     total_size = len(ds) # Both datasets have the same length
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     
     print(len(train_subset))
-    data_dir = './data/caltech256_processed/'
+    data_dir = '/mnt/sam/pi_data/processed_data/caltech256/'
 
     save_path = Path(data_dir)
 
@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
         # Save tuple (Image, Topo, Label)
         torch.save((tensor_data, topo_data, label), val_save_path / f"{idx}.pt")
-    for v in range(5): 
+    for v in range(3): 
         print(f"Processing version: {v}") 
         version_path = save_path / f"train_v{v}"
         version_path.mkdir(parents=True, exist_ok=True)

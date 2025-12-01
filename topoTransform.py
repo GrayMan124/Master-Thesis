@@ -66,7 +66,7 @@ class AugmentAndCalculateFeatures:
         ])
         self.pi_transform = transforms.Compose([
              # transforms.ToTensor(),
-            transforms.Normalize(mean=6.56658, std = 34.323)
+            transforms.Normalize(mean=0 , std = 15003.3369140625)
             ])
     def __call__(self, pil_image):
         
