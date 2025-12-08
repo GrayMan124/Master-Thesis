@@ -1,24 +1,11 @@
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
-import pickle
-import gudhi as gd
-import gudhi.representations
-import argparse
-from matplotlib import pyplot as plt
 import torch
-import torchvision
-import torchvision.transforms as transforms
 import torch.nn as nn
-import cv2
-from PIL import Image
-from torchvision.transforms import v2
-import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader, ConcatDataset, random_split
-from tqdm import tqdm
-from multiprocessing import Pool, cpu_count, set_start_method
-import time
+# from multiprocessing import Pool, cpu_count, set_start_method
+# import time
 from torch.utils.tensorboard import SummaryWriter
-import copy
+# import copy
 import json
 
 from config import args
@@ -173,22 +160,22 @@ class PIFineTuneModel(nn.Module):
             else:    
                 self.topo_net = TopoIMG_ResNet(1,256)
         
-        if args.config:
-            layers = [layer_from_config(layer_config) for layer_config in config["res_net_fc"]]
-            self.res_net_fc = nn.Sequential(*layers)
-        else:
-            self.res_net_fc = nn.Sequential(
-                nn.Linear(512, 256),
-                nn.ReLU(),
-                nn.Linear(256,hidden_size),
-                nn.ReLU()
-            )
+        # if args.config:
+        #     layers = [layer_from_config(layer_config) for layer_config in args.config["res_net_fc"]]
+        #     self.res_net_fc = nn.Sequential(*layers)
+        # else:
+        #     self.res_net_fc = nn.Sequential(
+        #         nn.Linear(512, 256),
+        #         nn.ReLU(),
+        #         nn.Linear(256,hidden_size),
+        #         nn.ReLU()
+        #     )
         
         if args.config:
-            layers = [layer_from_config(layer_config) for layer_config in config["fc"]]
+            layers = [layer_from_config(layer_config) for layer_config in args.config["fc"]]
             self.fc = nn.Sequential(*layers)
         else:
-            self.fc = nn.Sequential(nn.Linear(hidden_size *2 , hidden_size),
+            self.fc = nn.Sequential(nn.Linear(hidden_size * 2 , hidden_size),
                 nn.ReLU(),
                 nn.Linear(hidden_size,num_classes ),
                 nn.Softmax()
