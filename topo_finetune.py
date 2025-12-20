@@ -113,7 +113,7 @@ class PrecomputedDataset(torch.utils.data.Dataset):
 #Main function
 if __name__ == "__main__":
 
-    args.tbs == 'large'
+    # args.tbs == 'large'
     print(args)
     
     # train_loader, val_loader = get_topo_DS(dir_path= './data/', dataset= Caltech256)
@@ -129,7 +129,8 @@ if __name__ == "__main__":
     print(f'Currenttly running model: {args.model} with {args.tv} ')
     print(f'Number of paramters: {count_parameters(model)}')
     
-    cache_dir = './data/caltech256_processed/'
+    # cache_dir = './data/caltech256_processed/'
+    cache_dir = '/mnt/sam/pi_data/processed_data/tinyImageNet/'
     versions = [f'train_v{i}' for i in range(3)]
     
     train_ds = PrecomputedDataset(cache_dir, version_folders=versions)

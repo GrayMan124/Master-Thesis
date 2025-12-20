@@ -66,8 +66,10 @@ class AugmentAndCalculateFeatures:
         ])
         self.pi_transform = transforms.Compose([
              # transforms.ToTensor(),
-            transforms.Normalize(mean=0 , std = 15003.3369140625)
+            transforms.Normalize(mean=0 , std = 0.13958996534347534)
             ])
+    #  tinyImage net max value: 0.13958996534347534
+    # Caltech256 max value: 15003.3369140625)
     def __call__(self, pil_image):
         
         if self.train:

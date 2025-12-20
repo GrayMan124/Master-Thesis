@@ -44,7 +44,8 @@ def custom_collate(batch_list):
 if __name__ == '__main__':
     args.model = "ResNet" 
 
-    ds = Caltech256(root = './data/', download= False)
+    # ds = Caltech256(root = './data/', download= False)
+    ds = load_dataset("zh-plus/tiny-imagenet", split='train')
     # ds = Food101(root = '/mnt/sam/pi_data/', download = True)
     train_ratio = 0.8
     val_ratio = 1.0 - train_ratio
@@ -66,10 +67,8 @@ if __name__ == '__main__':
         generator = split_gen 
     )
     
-
-    
     print(len(train_subset))
-    data_dir = '/mnt/sam/pi_data/processed_data/caltech256/'
+    data_dir = '/mnt/sam/pi_data/processed_data/tinyImageNet/'
 
     save_path = Path(data_dir)
 
@@ -82,8 +81,10 @@ if __name__ == '__main__':
     processing_val = AugmentAndCalculateFeatures(train=False)
 
     for idx in tqdm(range(len(val_subset))):
-        img_pil, label = val_subset.__getitem__(idx) # Get raw PIL image
+        # img_pil, label = val_subset.__getitem__(idx) # Get raw PIL image
 
+        img_pil = val_subset[idx]['image']
+        label = val_subset[idx]['label']
         # Apply non-augmented transform (Resize + TDA)
         tensor_data, topo_data = processing_val(img_pil)
 
@@ -95,8 +96,10 @@ if __name__ == '__main__':
         version_path.mkdir(parents=True, exist_ok=True)
         
         for idx in tqdm(range(len(train_subset))):
-            img_pil, label = train_subset.__getitem__(idx)
+            # img_pil, label = train_subset.__getitem__(idx)
             
+            img_pil = train_subset[idx]['image']
+            label = train_subset[idx]['label']
             # Apply augmented transform (RandomCrop + TDA)
             # Because global RNG changes, this will be different every time
             tensor_data, topo_data = processing_train(img_pil)
