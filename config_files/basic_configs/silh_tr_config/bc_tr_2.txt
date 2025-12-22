@@ -1,0 +1,8 @@
+--lr=0.0001
+--tv=bc
+--topodim=1
+--cores=1
+--tbs=normal
+--config=config/TBR_bc.json
+--name=BC_TR_0_2
+--model=TR

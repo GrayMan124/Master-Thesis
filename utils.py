@@ -1,33 +1,16 @@
-import numpy as np
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
-import pickle
-import gudhi as gd
-import gudhi.representations
-import argparse
-from matplotlib import pyplot as plt
 import torch
-import torchvision
-import torchvision.transforms as transforms
 import torch.nn as nn
-import cv2
-from PIL import Image
-from torchvision.transforms import v2
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader, ConcatDataset, random_split
+from torch.utils.data import Dataset
 from tqdm import tqdm
-from multiprocessing import Pool, cpu_count, set_start_method
 import time
 from torch.utils.tensorboard import SummaryWriter
 import copy
-import json
 import pandas as pd
 
-from config import args
-from models.ResNet50 import ResNet_50
 
-model_saving_path = 'models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
-tensor_board_path = 'runs/' + args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw
 
 
 
@@ -35,15 +18,8 @@ def count_parameters(model):
     """Counts the total, trainable, and non-trainable parameters 
     and estimates their memory usage."""
     
-    # --- 1. Count Total and Trainable Parameters ---
-    
-    # Total parameters
     total_params = sum(p.numel() for p in model.parameters())
-    
-    # Trainable parameters
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    
-    # Non-trainable parameters
     non_trainable_params = total_params - trainable_params
     
     print(f"--- Parameter Count ---")
@@ -51,15 +27,7 @@ def count_parameters(model):
     print(f"Trainable parameters: {trainable_params:,}")
     print(f"Non-trainable params: {non_trainable_params:,}")
     
-    
-    # --- 2. Calculate Memory Usage ---
-    
-    # Assume default dtype is float32 (4 bytes)
-    # You can get the exact dtype from a parameter: p.dtype
-    # We'll check the first parameter's dtype as a reference
-    
     if total_params > 0:
-        # Get dtype of the first parameter
         param_dtype = next(model.parameters()).dtype
         
         if param_dtype == torch.float32:
@@ -69,11 +37,9 @@ def count_parameters(model):
         elif param_dtype == torch.float64:
             bytes_per_param = 8
         else:
-            # Fallback for other types like int, etc.
             try:
                 bytes_per_param = torch.finfo(param_dtype).bits // 8
             except TypeError:
-                # For non-float types like int8
                 try:
                     bytes_per_param = torch.iinfo(param_dtype).bits // 8
                 except TypeError:
@@ -109,9 +75,9 @@ def test_model(model, dataloader,criterion, optimizer):
 
         labels = labels.to(device)
         optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)
-        optimizer.zero_grad() # Zero the parameter gradients
+        optimizer.zero_grad() 
 
-        with torch.set_grad_enabled(False): # Forward. Track history if only in train
+        with torch.set_grad_enabled(False): 
 
             outputs = model(inputs)
             loss = criterion(outputs, labels)
@@ -128,22 +94,15 @@ def test_model(model, dataloader,criterion, optimizer):
 
 
 
-#Helper function for counting trainable parameters
-# def count_parameters(model):
-#     return sum(p.numel() for p in model.parameters() if p.requires_grad)
-
-
-
-
 result_file = 'results.csv'
 
-writer = SummaryWriter(log_dir = tensor_board_path)
 
 
 #Training function
-def train_model(model, dataloaders, criterion, optimizer, num_epochs=50):
+def train_model(model, dataloaders, criterion, optimizer, args, tensor_board_path):
     print('Traning model')
 
+    writer = SummaryWriter(log_dir = tensor_board_path)
     since = time.time()
     val_acc_history = []
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -155,7 +114,8 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=50):
     train_acc = 0.0
     train_loss = 10
     val_loss = 0.0
-
+    
+    num_epochs = args.epochs
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
@@ -266,11 +226,6 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=50):
     except:
         result_df.to_csv(result_file,index=False) 
     
-    # with open(result_file,'a') as f:
-    #     new_line = f'Model: {args.name} train_loss: {train_loss} val_loss: {val_loss} train_acc: {train_acc*100} val_acc: {best_acc*100}\n'
-    #     f.writelines(new_line)
-
-    # load best model weights
     model.load_state_dict(best_model_wts)
     return model, val_acc_history
 
@@ -285,23 +240,10 @@ def layer_from_config(layer_config):
     layer_type = layer_config["type"]
     params = {k: v for k, v in layer_config.items() if k != "type"}
 
-    # Dynamically instantiate the layer
     if hasattr(nn, layer_type):
         return getattr(nn, layer_type)(**params)
     else:
         raise ValueError(f"Layer type {layer_type} is not supported.")
 
-
-class MyDataset(Dataset):
-    def __init__(self, data, labels):
-        self.data = data
-        self.labels = labels
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        # Return a tuple (data, label)
-        return self.data[idx], self.labels[idx]
 
 

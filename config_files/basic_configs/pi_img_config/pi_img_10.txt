@@ -1,0 +1,7 @@
+--cores=1
+--tv=pi_img
+--name=PI_IMG_10_TBR_DIM1_S_LR
+--lr=0.0001
+--model=TBR_img
+--topodim=1
+--tbs=small

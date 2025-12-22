@@ -1,25 +1,8 @@
-import numpy as np
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
-import pickle
-import gudhi as gd
-import gudhi.representations
-import argparse
-from matplotlib import pyplot as plt
-import torch
-import torchvision
 import torchvision.transforms as transforms
 import torch.nn as nn
-import cv2
-from PIL import Image
-from torchvision.transforms import v2
-import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader, ConcatDataset, random_split
-from tqdm import tqdm
-from multiprocessing import Pool, cpu_count, set_start_method
-import time
 from torch.utils.tensorboard import SummaryWriter
-import copy
 import json
 
 from config import args
@@ -45,8 +28,6 @@ if args.config:
     hidden_size = config['hidden_size']
 else:
     hidden_size = 64
-
-
 
 #Residual block
 class Block(nn.Module):
@@ -74,11 +55,10 @@ class Block(nn.Module):
 
 #Base ResNet-17
 class ResNet_18(nn.Module):
-
     def __init__(self, image_channels, num_classes):
 
         super(ResNet_18, self).__init__()
-        self.in_channels = 64
+        self.in_channels = 64 
         self.conv1 = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU()

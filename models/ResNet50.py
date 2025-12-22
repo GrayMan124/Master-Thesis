@@ -29,7 +29,6 @@ else:
     hidden_size = 64
 
 
-
 #Residual block for ResNet50
 class Block(nn.Module):
     def __init__(self, in_channels, inter_channels, out_channels, identity_downsample=None, stride=1):

@@ -1,0 +1,25 @@
+{
+  "hidden_size": 64,
+  "topo_net": [
+    {"type": "Linear", "in_features": 200, "out_features": 128},
+    {"type": "ReLU"},
+    {"type": "Linear", "in_features": 128, "out_features": 128},
+    {"type": "ReLU"},
+    {"type": "Linear", "in_features": 128, "out_features": 64},
+    {"type": "ReLU"}
+  ],
+
+  "res_net_fc": [  {"type": "Linear", "in_features": 512, "out_features": 256},
+    {"type": "ReLU"},
+    {"type": "Linear", "in_features": 256, "out_features": 128},
+    {"type": "ReLU"},
+    {"type": "Linear", "in_features": 128, "out_features": 64},
+    {"type": "ReLU"}],
+
+  "fc": [  {"type": "Linear", "in_features": 128, "out_features": 64},
+      {"type": "ReLU"},
+      {"type": "Linear", "in_features": 64, "out_features": 32},
+      {"type": "ReLU"},
+      {"type": "Linear", "in_features": 32, "out_features": 10},
+      {"type": "Softmax", "dim": 1}]
+}

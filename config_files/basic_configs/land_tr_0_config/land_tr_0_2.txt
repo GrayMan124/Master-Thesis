@@ -1,0 +1,8 @@
+--lr=0.0001
+--tv=land
+--topodim=0
+--cores=1
+--tbs=normal
+--config=config/TBR_land.json
+--name=Land_TR_2
+--model=TR

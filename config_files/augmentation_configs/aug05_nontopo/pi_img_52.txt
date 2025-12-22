@@ -1,0 +1,9 @@
+--cores=1
+--tv=pi_img
+--name=PI_IMG_52_TR_CONCAT_L_LR
+--lr=0.0001
+--model=TR_img
+--topodim_concat
+--tbs=large
+--aug=0.5
+--aug_type=non-topo

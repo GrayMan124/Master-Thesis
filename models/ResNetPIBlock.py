@@ -118,14 +118,8 @@ class PIBlock(nn.Module):
                                 nn.BatchNorm2d(out_channels),
                                 nn.ReLU()    
                                     )
-        # self.conv1_t = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
-        # self.bn1_t = nn.BatchNorm2d(out_channels)
-        # # self.conv2_t = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
-        # # self.bn2_t = nn.BatchNorm2d(out_channels)
-        # self.relu_t = nn.ReLU()
         
         self.identity_downsample_t = identity_downsample
-
 
 
 
@@ -139,12 +133,6 @@ class PIBlock(nn.Module):
         x = self.conv2(x)
         x = self.bn2(x)
 
-        #Topological information
-        # topo = self.conv1_t(topo)
-        # topo = self.relu_t(topo)
-        # topo = self.bn1_t(topo)
-        # # topo = self.conv2_t(topo)
-        # topo = self.bn2_t(topo)
         topo = self.topo_net(topo)
 
         if self.identity_downsample is not None:
@@ -231,11 +219,8 @@ class ResNet_18_PIBlock(nn.Module):
         self.relu = nn.ReLU()
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
-
-
-
         #topological section
-        self.topo_emb = TopoIMG_transModel(0) #Why is tmp there? KEKW
+        self.topo_emb = TopoIMG_transModel(0)
         self.conv1_t = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
         self.bn1_t = nn.BatchNorm2d(64)
         self.relu_t = nn.ReLU()
@@ -305,18 +290,10 @@ class ResNet_18_PIBlock(nn.Module):
         x = transforms.functional.resize(x, (112, 112))
         x_topo = self.topo_emb(topo)
 
-        # x_topo = transforms.functional.resize(x_topo, (112, 112))
-
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
-
-        # x_topo = self.conv1_t(x_topo)
-        # x_topo = self.bn1_t(x_topo)
-        # x_topo = self.relu_t(x_topo)
-        # x_topo = self.maxpool_t(x_topo)
-
 
         x,x_topo = self.layer1((x,x_topo))
 

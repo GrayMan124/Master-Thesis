@@ -1,0 +1,10 @@
+--cores=1
+--tv=pi_img
+--name=PI_IMG_16_TBR_DIM1_L_LR
+--lr=0.0001
+--model=TBR_img
+--topodim=1
+--tbs=large
+--aug=0.5
+--aug_type=topo
+--sm

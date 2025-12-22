@@ -2,17 +2,9 @@ import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import torch
 import torch.nn as nn
-# from multiprocessing import Pool, cpu_count, set_start_method
-# import time
 from torch.utils.tensorboard import SummaryWriter
-# import copy
 import json
 
-from config import args
-
-
-model_saving_path = 'models/'+ args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw +'.pkl'
-tensor_board_path = 'runs/' + args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim) + '_' + args.bw
 
 def layer_from_config(layer_config):
     layer_type = layer_config["type"]
@@ -24,12 +16,12 @@ def layer_from_config(layer_config):
     else:
         raise ValueError(f"Layer type {layer_type} is not supported.")
 
-if args.config and False:
-    with open(args.config, "r") as f:
-        config = json.load(f)
-    hidden_size = config['hidden_size']
-else:
-    hidden_size = 256 
+# if args.config and False:
+#     with open(args.config, "r") as f:
+#         config = json.load(f)
+#     hidden_size = config['hidden_size']
+# else:
+#     hidden_size = 256 
 
 
 
@@ -59,7 +51,7 @@ class Block(nn.Module):
 
 class TopoIMG_ResNet(nn.Module): #this is based on the resnet implementation on ResNet (using ResNet as the base to process the images)
 
-    def __init__(self, image_channels, hidden_size):
+    def __init__(self, image_channels, hidden_size, args):
 
         super(TopoIMG_ResNet, self).__init__()
         self.in_channels = 64
@@ -136,7 +128,7 @@ class TopoIMG_ResNet(nn.Module): #this is based on the resnet implementation on 
 #Resnet with Topological features as topological images (in the IMG form)
 class PIFineTuneModel(nn.Module):
 
-    def __init__(self, base_model, image_channels, num_classes,device):
+    def __init__(self, base_model, image_channels, num_classes, device, args):
 
         super(PIFineTuneModel, self).__init__()
         self.device = device
@@ -147,7 +139,7 @@ class PIFineTuneModel(nn.Module):
                 param.requires_grad = False
 
         num_features = self.base_model.fc.in_features
-        self.base_model.fc = nn.Linear(num_features, hidden_size)
+        self.base_model.fc = nn.Linear(num_features, args.hidden_size)
 
         if args.config: #if the config was set
             raise('This part is not yet inplemented in the config - TopoPI')
@@ -156,9 +148,9 @@ class PIFineTuneModel(nn.Module):
 
         else: #Based on resnet - for now a potential change in the future KEKW
             if args.topodim_concat:
-                self.topo_net = TopoIMG_ResNet(2,256)
+                self.topo_net = TopoIMG_ResNet(2,256, args = args)
             else:    
-                self.topo_net = TopoIMG_ResNet(1,256)
+                self.topo_net = TopoIMG_ResNet(1,256, args = args)
         
         # if args.config:
         #     layers = [layer_from_config(layer_config) for layer_config in args.config["res_net_fc"]]
@@ -175,9 +167,9 @@ class PIFineTuneModel(nn.Module):
             layers = [layer_from_config(layer_config) for layer_config in args.config["fc"]]
             self.fc = nn.Sequential(*layers)
         else:
-            self.fc = nn.Sequential(nn.Linear(hidden_size * 2 , hidden_size),
+            self.fc = nn.Sequential(nn.Linear(args.hidden_size * 2 , args.hidden_size),
                 nn.ReLU(),
-                nn.Linear(hidden_size,num_classes ),
+                nn.Linear(args.hidden_size,num_classes ),
                 nn.Softmax()
             )
 
@@ -187,6 +179,7 @@ class PIFineTuneModel(nn.Module):
         x, topo = x
         x = x.to('cuda:0')
         topo = topo.to('cuda:0')
+        x = torch.nn.functional.interpolate(x, size= (224,224), mode = 'bilinear', align_corners= False)
         x = self.base_model(x)
         x_2 = self.topo_net(topo)
         x_2 = x_2.squeeze(1)

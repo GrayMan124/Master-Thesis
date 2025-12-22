@@ -1,0 +1,11 @@
+--lr=0.0001
+--tv=land
+--res=100
+--topodim=0
+--cores=1
+--tbs=small
+--config=config/TBR_land_2dim_small.json
+--name=LAND_2DIM_9
+--topodim_concat
+--aug=0.5
+--aug_type=all
