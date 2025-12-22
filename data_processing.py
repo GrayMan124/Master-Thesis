@@ -19,18 +19,11 @@ from multiprocessing import Pool, cpu_count, set_start_method
 
 from config import args
 
-# import resource
-# rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
-# resource.setrlimit(resource.RLIMIT_NOFILE, (4096, rlimit[1]))
 
 import torch.multiprocessing
 torch.multiprocessing.set_sharing_strategy('file_system')
 
-#Function to process the image that is:
-# - Change the image to Gray-scale
-# - Calculate the topological features
 def process_img_topo_land(data, to_grayscale = transforms.Grayscale(num_output_channels=1)): #Processing to Landscapes
-    #Grayscale using provided function
     try:
         transform=transforms.Compose(
             [transforms.ToTensor(),

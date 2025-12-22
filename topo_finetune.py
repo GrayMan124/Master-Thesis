@@ -1,23 +1,20 @@
-#Update, version from: 24-11-2025 
+#Update, version from: 20-12-2025 
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import torch
 import torchvision
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, random_split, DataLoader
+from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import json
-from torchvision.datasets import Caltech256 , Caltech101
 from torchvision.models import resnet50 
 from pathlib import Path
-import glob 
 
-
-from topoTransform import get_topo_DS
+from dataProcessing.topoTransform import get_topo_DS
 from models.PI_finetune import PIFineTuneModel
 
-from utils import test_model, train_model, count_parameters
+from utils import test_model, train_model, count_parameters, MyDataset
 from config import args
 
  
@@ -60,9 +57,6 @@ def collate_fn(batch):
       'labels': torch.tensor([x['labels'] for x in batch])
     }
 
-
-
-
 def layer_from_config(layer_config):
     layer_type = layer_config["type"]
     params = {k: v for k, v in layer_config.items() if k != "type"}
@@ -74,56 +68,25 @@ def layer_from_config(layer_config):
         raise ValueError(f"Layer type {layer_type} is not supported.")
 
 
-class MyDataset(Dataset):
-    def __init__(self, data, labels):
-        self.data = data
-        self.labels = labels
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        # Return a tuple (data, label)
-        return self.data[idx], self.labels[idx]
-
-class PrecomputedDataset(torch.utils.data.Dataset):
-    def __init__(self, data_dir, version_folders=None):
-        """
-        data_dir: Path to 'data_cache'
-        version_folders: List of subfolders to include. 
-                         For training: ['train_v0', 'train_v1', ...]
-                         For val: ['val']
-        """
-        self.files = []
-        for v_folder in version_folders:
-            # Gather all .pt files from the specified versions
-            path = Path(data_dir) / v_folder
-            self.files.extend(list(path.glob("*.pt")))
-
-    def __len__(self):
-        return len(self.files)
-
-    def __getitem__(self, idx):
-        # Load the saved tensor directly
-        # Returns ((image_tensor, topo_features), label)
-        # Note: torch.load is CPU bound, usually fast enough
-        img_tensor, topo, label = torch.load(self.files[idx])
-        return (img_tensor, topo), label
 
 #Main function
 if __name__ == "__main__":
 
-    # args.tbs == 'large'
+
+
+
+
+
+
+
     print(args)
-    
-    # train_loader, val_loader = get_topo_DS(dir_path= './data/', dataset= Caltech256)
     
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f'Using device: {device}')
 
     base_model = resnet50(weights = "IMAGENET1K_V2")
     
-    model =  PIFineTuneModel(base_model = base_model, image_channels = 3, num_classes = 257, device= device)
+    model = PIFineTuneModel(base_model = base_model, image_channels = 3, num_classes = 200, device= device)
     model.to(device)
 
     print(f'Currenttly running model: {args.model} with {args.tv} ')

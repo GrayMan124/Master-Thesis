@@ -1,7 +1,0 @@
---cores=1
---tv=pi_img
---name=PI_IMG_7_TBR_DIM0_L_LR
---lr=0.0001
---model=TBR_img
---topodim=0
---tbs=large

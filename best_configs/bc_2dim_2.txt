@@ -1,8 +1,0 @@
---lr=0.0001
---tv=bc
---topodim=0
---cores=1
---tbs=normal
---config=config/TBR_bc_2dim.json
---name=BC_TBR_2DIM_2
---topodim_concat
