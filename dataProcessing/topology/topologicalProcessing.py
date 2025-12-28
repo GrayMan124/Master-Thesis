@@ -62,10 +62,10 @@ class AugmentAndCalculateFeatures:
                                  std=[0.229, 0.224, 0.225])
         ])
         self.pi_transform = transforms.Compose([
-             # transforms.ToTensor(),
-            transforms.Normalize(mean=0 , std = 0.13958996534347534)
+             transforms.ToTensor(),
+            transforms.Normalize(mean=0 , std = 1247.8710)
             ])
-    # tinyImage net max value: 0.13958996534347534 #TODO: Change this to loading a config file
+    # tinyImage net max value: 0.13958996534347534 #TODO: Change this to loading a config file 1247.8710
     # Caltech256 max value: 15003.3369140625)
     def __call__(self, pil_image):
         
@@ -78,7 +78,8 @@ class AugmentAndCalculateFeatures:
         pil_image = pil_image.convert('RGB')
         image_np = np.array(pil_image)
         
-        topo_features = self.pi_transform(process_PI(input = pil_image, args = self.args)) 
+        # topo_features = self.pi_transform(process_PI(input = pil_image, args = self.args)) 
+        topo_features = process_PI(input = pil_image, args = self.args) 
         #Add normalization here brther
 
         if self.train:
@@ -89,9 +90,9 @@ class AugmentAndCalculateFeatures:
         return (image_tensor, topo_features)
 
 
-def get_topo_DS(dir_path = '.', dataset = None):
-    train_transform = AugmentAndCalculateFeatures(train= True)
-    val_transform = AugmentAndCalculateFeatures(train= False)
+def get_topo_DS(dir_path = '.', dataset = None, args = None):
+    train_transform = AugmentAndCalculateFeatures(train= True, args= args)
+    val_transform = AugmentAndCalculateFeatures(train= False, args= args)
     
     train_set_full = dataset(root = dir_path, transform = train_transform, download = False)
     val_set_full = dataset(root = dir_path, transform = val_transform, download = False)

@@ -12,7 +12,8 @@ from datasets import load_dataset
 from config.config import args
 from dataProcessing.processing import process_data, PrecomputedDataset
 from utils import train_model
-from models.PI_finetune import PIFineTuneModel 
+from models.PI_finetune import PIFineTuneModel
+from models.FineTuneResNet import ResNetFineTune
 
 
 tensor_board_path = 'runs/' + args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim)   
@@ -44,16 +45,27 @@ if __name__ == '__main__':
 
     base_model = resnet50(weights = "IMAGENET1K_V2")
     
-    model = PIFineTuneModel(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
-    model.to(device)
+    # model = PIFineTuneModel(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
+    # model.to(device)
 
+    model = ResNetFineTune(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
+    model.to(device)
+    
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
 
+    # model, _ = train_model(model = model,
+    #                        dataloaders = {"train": train_loader, "val": val_loader}, 
+    #                        criterion = criterion,
+    #                        optimizer = optimizer,
+    #                        args = args,
+    #                        tensor_board_path = tensor_board_path)
+    resume_path = None
+
     model, _ = train_model(model = model,
                            dataloaders = {"train": train_loader, "val": val_loader}, 
                            criterion = criterion,
-                           optimizer = optimizer,
                            args = args,
-                           tensor_board_path = tensor_board_path)
+                           tensor_board_path = tensor_board_path,
+                           resume_path=resume_path)

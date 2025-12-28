@@ -70,8 +70,8 @@ def get_train_val_split(data_set, val_size):
     return train_subset, val_subset
 
 def process_data(data_set, data_path, num_versions,  args):
-    
-    train_subset, val_subset = get_train_val_split(data_set = data_set, val_size = args.val_size) #TODO: change this 0.8 to args.train_split
+    data_set = data_set['train'] 
+    train_subset, val_subset = get_train_val_split(data_set = data_set, val_size = args.val_size) 
     save_path = Path(data_path)
 
     # --- PROCESS VALIDATION (Do this once) ---
@@ -79,8 +79,8 @@ def process_data(data_set, data_path, num_versions,  args):
     val_save_path = save_path / "val"
     val_save_path.mkdir(parents=True, exist_ok=True)
 
-    processing_train = AugmentAndCalculateFeatures(train=True)
-    processing_val = AugmentAndCalculateFeatures(train=False)
+    processing_train = AugmentAndCalculateFeatures(train=True, args = args)
+    processing_val = AugmentAndCalculateFeatures(train=False, args = args)
 
     for idx in tqdm(range(len(val_subset))):
         img_pil = val_subset[idx]['image']
