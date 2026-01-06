@@ -85,11 +85,11 @@ def test_model(model, dataloader,criterion, optimizer):
 
         # Statistics
         running_loss += loss.item() * inputs[0].size(0)
-        running_corrects += torch.sum(preds == labels.data)
+        running_corrects += torch.sum(preds == labels.data).item()
 
 
     total_loss = running_loss / len(dataloader.dataset)
-    total_acc = running_corrects.double() / len(dataloader.dataset)
+    total_acc = running_corrects / len(dataloader.dataset)
     print('{} Loss: {:.4f} Acc: {:.4f}'.format('Test', total_loss, total_acc))
 
 
