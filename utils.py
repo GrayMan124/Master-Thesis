@@ -8,8 +8,9 @@ import time
 from torch.utils.tensorboard import SummaryWriter
 import copy
 from config.config import args
-from torch.cuda.amp import autocast, GradScaler
-
+# from torch.cuda.amp import autocast, GradScaler
+from torch.amp.grad_scaler import GradScaler
+from torch.amp.autocast_mode import autocast
 
 
 
@@ -113,7 +114,7 @@ def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_p
     val_acc_history = []
     best_model_wts = copy.deepcopy(model.state_dict())
 
-    scaler = GradScaler()
+    scaler = GradScaler('cuda')
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     for epoch in range(start_epoch, args.epochs):
         print('Epoch {}/{}'.format(epoch, args.epochs - 1))
@@ -145,7 +146,7 @@ def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_p
                 optimizer.zero_grad()
                 
                 with torch.set_grad_enabled(phase == 'train'):
-                    with autocast():
+                    with autocast('cuda'):
                         outputs = model(inputs)
                         loss = criterion(outputs, labels)
                     
@@ -153,14 +154,16 @@ def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_p
 
                     if phase == 'train':
                         scaler.scale(loss).backward()
-                        scaler.step(optimizer=optimizer)
+                        scaler.unscale_(optimizer = optimizer)
+                        torch.nn.utils.clip_grad_norm_(model.parameters(),max_norm= 1.0)
+                        scaler.step(optimizer = optimizer)
                         scaler.update()
 
                 running_loss += loss.item() * current_batch_size
                 running_corrects += torch.sum(preds == labels.data).item()
 
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
-            epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
+            epoch_acc = running_corrects / len(dataloaders[phase].dataset)
 
             if phase == 'train':
                 writer.add_scalar("Loss/train", epoch_loss, epoch)
