@@ -45,8 +45,8 @@ if __name__ == '__main__':
     train_ds = PrecomputedDataset(cache_dir, version_folders=versions, transform=resize_transform)
     val_ds = PrecomputedDataset(cache_dir, version_folders=['val'], transform=resize_transform)
 
-    train_loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers=8, pin_memory=True)
-    val_loader = DataLoader(val_ds, batch_size=64, shuffle=False, num_workers=8, pin_memory=True)
+    train_loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers= args.num_workers, pin_memory=True)
+    val_loader = DataLoader(val_ds, batch_size=64, shuffle=False, num_workers= args.num_workers, pin_memory=True)
     
 
     base_model = resnet50(weights = "IMAGENET1K_V2")
