@@ -11,7 +11,7 @@ torch.autograd.set_detect_anomaly(True)
 
     
 class PrecomputedDataset(torch.utils.data.Dataset):
-    def __init__(self, data_dir, version_folders=None):
+    def __init__(self, data_dir, version_folders=None, transform=None):
         """
         data_dir: Path to 'data_cache'
         version_folders: List of subfolders to include. 
@@ -19,6 +19,7 @@ class PrecomputedDataset(torch.utils.data.Dataset):
                          For val: ['val']
         """
         self.files = []
+        self.transform = transform
         for v_folder in version_folders:
             path = Path(data_dir) / v_folder
             self.files.extend(list(path.glob("*.pt")))
@@ -28,6 +29,9 @@ class PrecomputedDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         img_tensor, topo, label = torch.load(self.files[idx])
+        if self.transform:
+            img_tensor = self.transform(img_tensor)
+
         return (img_tensor, topo), label
 
 # def apply_train_transformation(batch):
