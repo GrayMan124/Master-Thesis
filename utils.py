@@ -8,6 +8,7 @@ import time
 from torch.utils.tensorboard import SummaryWriter
 import copy
 from config.config import args
+from torch.cuda.amp import autocast, GradScaler
 
 
 
@@ -112,6 +113,8 @@ def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_p
     val_acc_history = []
     best_model_wts = copy.deepcopy(model.state_dict())
 
+    scaler = GradScaler()
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     for epoch in range(start_epoch, args.epochs):
         print('Epoch {}/{}'.format(epoch, args.epochs - 1))
         print('-' * 10)
@@ -126,7 +129,6 @@ def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_p
             running_corrects = 0
 
             for inputs, labels in tqdm(dataloaders[phase], desc=phase):
-                device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
                 
                 if args.model != 'ResNet':
                     x1, x2 = inputs
@@ -141,18 +143,21 @@ def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_p
                 labels = labels.to(device)
 
                 optimizer.zero_grad()
-
+                
                 with torch.set_grad_enabled(phase == 'train'):
-                    outputs = model(inputs)
-                    loss = criterion(outputs, labels)
+                    with autocast():
+                        outputs = model(inputs)
+                        loss = criterion(outputs, labels)
+                    
                     _, preds = torch.max(outputs, 1)
 
                     if phase == 'train':
-                        loss.backward()
-                        optimizer.step()
+                        scaler.scale(loss).backward()
+                        scaler.step(optimizer=optimizer)
+                        scaler.update()
 
                 running_loss += loss.item() * current_batch_size
-                running_corrects += torch.sum(preds == labels.data)
+                running_corrects += torch.sum(preds == labels.data).item()
 
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
             epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
@@ -174,13 +179,11 @@ def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_p
                 best_loss = epoch_loss # Capture best loss too
                 best_model_wts = copy.deepcopy(model.state_dict())
                 
-                save_checkpoint(model=model, optimizer=optimizer, scheduler=lr_scheduler,epoch=epoch,loss=best_loss, file_name="best_checkpoint.pth")
-
             if phase == 'val':
                 val_acc_history.append(epoch_acc)
 
         
-            save_checkpoint(model=model, optimizer=optimizer, scheduler=lr_scheduler,epoch=epoch,loss=best_loss, file_name="checkpoint.pth")
+        save_checkpoint(model=model, optimizer=optimizer, scheduler=lr_scheduler,epoch=epoch,loss=best_loss, file_name="checkpoint.pth")
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))

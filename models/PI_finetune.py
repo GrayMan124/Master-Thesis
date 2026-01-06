@@ -145,33 +145,19 @@ class PIFineTuneModel(nn.Module):
             else:    
                 self.topo_net = TopoIMG_ResNet(1,256, args = args)
         
-        # if args.config:
-        #     layers = [layer_from_config(layer_config) for layer_config in args.config["res_net_fc"]]
-        #     self.res_net_fc = nn.Sequential(*layers)
-        # else:
-        #     self.res_net_fc = nn.Sequential(
-        #         nn.Linear(512, 256),
-        #         nn.ReLU(),
-        #         nn.Linear(256,hidden_size),
-        #         nn.ReLU()
-        #     )
-        
         if args.config:
             layers = [layer_from_config(layer_config) for layer_config in args.config["fc"]]
             self.fc = nn.Sequential(*layers)
         else:
             self.fc = nn.Sequential(nn.Linear(args.hidden_size * 2 , args.hidden_size),
-                nn.ReLU(),
-                nn.Linear(args.hidden_size,num_classes ),
-                nn.Softmax()
+                nn.ReLU(inplace= True),
+                nn.Linear(args.hidden_size,num_classes )
             )
 
 
     def forward(self, x):
         #suppose we do have the topo info in the dataset
         x, topo = x
-        x = x.to('cuda:0')
-        topo = topo.to('cuda:0')
         x = torch.nn.functional.interpolate(x, size= (224,224), mode = 'bilinear', align_corners= False)
         x = self.base_model(x)
         x_2 = self.topo_net(topo)

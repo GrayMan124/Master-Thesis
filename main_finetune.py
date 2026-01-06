@@ -7,6 +7,7 @@ from torch.utils.tensorboard import SummaryWriter
 import torch.nn as nn
 import torch.optim as optim
 from torchvision.models import resnet50 
+from torchvision import transforms 
 from datasets import load_dataset
 
 from config.config import args
@@ -36,11 +37,14 @@ if __name__ == '__main__':
     else:
         print("----- Using Cached Dataset ----- ")
     
-    train_ds = PrecomputedDataset(cache_dir, version_folders=versions)
-    val_ds = PrecomputedDataset(cache_dir, version_folders=['val'])
+    resize_transform = transforms.Compose([
+        transforms.Resize((224,224), antialias = True)
+                                           ])
+    train_ds = PrecomputedDataset(cache_dir, version_folders=versions, transform=resize_transform)
+    val_ds = PrecomputedDataset(cache_dir, version_folders=['val'], transform=resize_transform)
 
-    train_loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers=8)
-    val_loader = DataLoader(val_ds, batch_size=64, shuffle=False, num_workers=8)
+    train_loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers=8, pin_memory=True)
+    val_loader = DataLoader(val_ds, batch_size=64, shuffle=False, num_workers=8, pin_memory=True)
     
 
     base_model = resnet50(weights = "IMAGENET1K_V2")
