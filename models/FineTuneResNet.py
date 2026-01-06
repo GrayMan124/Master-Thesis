@@ -25,6 +25,9 @@ class ResNetFineTune(nn.Module):
         self.device = device
 
         self.base_model = base_model
+        for _, module in self.base_model.named_modules():
+            if isinstance(module, nn.BatchNorm2d):
+                module.eps = 1e-4
         if args.freeze_weights:
             for param in self.base_model.parameters():
                 param.requires_grad = False

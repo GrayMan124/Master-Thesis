@@ -12,7 +12,7 @@ from datasets import load_dataset
 
 from config.config import args
 from dataProcessing.processing import process_data, PrecomputedDataset
-from utils import train_model
+from utils import train_model, seed_all
 from models.PI_finetune import PIFineTuneModel
 from models.FineTuneResNet import ResNetFineTune
 
@@ -23,10 +23,12 @@ if __name__ == '__main__':
     print("------ Running Fine Tuning with arguments------")
     print(args)
     
+    seed_all(args.seed) 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f'Using device: {device}')
 
     # cache_dir = './data/caltech256_processed/'
+    # cache_dir = './data/tinyImageNet/'
     cache_dir = '/mnt/sam/pi_data/processed_data/tinyImageNet/'
     versions = [f'train_v{i}' for i in range(3)]
 
@@ -54,9 +56,10 @@ if __name__ == '__main__':
 
     model = ResNetFineTune(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
     model.to(device)
+    model = torch.compile(model, mode="reduce-overhead")
     
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4, fused=True)
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
 
     # model, _ = train_model(model = model,

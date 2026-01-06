@@ -11,7 +11,17 @@ from config.config import args
 # from torch.cuda.amp import autocast, GradScaler
 from torch.amp.grad_scaler import GradScaler
 from torch.amp.autocast_mode import autocast
+import random 
+import numpy as np
 
+def seed_all(seed):
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = False # Set true for final result training 
+    torch.backends.cudnn.benchmark = True
 
 
 def count_parameters(model):
