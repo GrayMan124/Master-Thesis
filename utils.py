@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 import time
-from torch.utils.tensorboard import SummaryWriter
+import wandb
 import copy
 from config.config import args
 # from torch.cuda.amp import autocast, GradScaler
@@ -102,11 +102,7 @@ def test_model(model, dataloader,criterion, optimizer):
     total_acc = running_corrects / len(dataloader.dataset)
     print('{} Loss: {:.4f} Acc: {:.4f}'.format('Test', total_loss, total_acc))
 
-
-
-result_file = 'results.csv'
-
-def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_path=None):
+def train_model(model, dataloaders, criterion, args, resume_path=None):
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
 
@@ -119,7 +115,8 @@ def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_p
                                             optimizer=optimizer,
                                             scheduler=lr_scheduler,
                                             file_name=resume_path) 
-    writer = SummaryWriter(log_dir=tensor_board_path)
+
+    wandb.watch(model, log="gradients",log_freq=100)
     since = time.time()
     val_acc_history = []
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -176,11 +173,18 @@ def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_p
             epoch_acc = running_corrects / len(dataloaders[phase].dataset)
 
             if phase == 'train':
-                writer.add_scalar("Loss/train", epoch_loss, epoch)
-                writer.add_scalar("Accuracy/train", epoch_acc, epoch)
+                wandb.log({
+                    "train_loss":epoch_loss,
+                    "train_acc": epoch_acc,
+                    "epoch" : epoch,
+                    "lr":optimizer.param_groups[0]['lr']
+                }, step=epoch)
             else:
-                writer.add_scalar("Loss/Val", epoch_loss, epoch)
-                writer.add_scalar("Accuracy/Val", epoch_acc, epoch)
+                wandb.log({
+                    "val_loss":epoch_loss,
+                    "val_acc": epoch_acc,
+                    "epoch" : epoch,
+                }, step=epoch)
                 
                 lr_scheduler.step(epoch_loss)
 
@@ -191,6 +195,7 @@ def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_p
                 best_acc = epoch_acc
                 best_loss = epoch_loss # Capture best loss too
                 best_model_wts = copy.deepcopy(model.state_dict())
+                wandb.run.summary["best_val_acc"] = best_acc
                 
             if phase == 'val':
                 val_acc_history.append(epoch_acc)

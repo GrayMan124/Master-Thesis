@@ -1,9 +1,9 @@
-#Update, version from: 22-12-2025 
+#Update, version from: 10-01-2026 
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import torch
+import wandb
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
 import torch.nn as nn
 import torch.optim as optim
 from torchvision.models import resnet50 
@@ -17,13 +17,19 @@ from models.PI_finetune import PIFineTuneModel
 from models.FineTuneResNet import ResNetFineTune
 
 
-tensor_board_path = 'runs/' + args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim)   
 
 if __name__ == '__main__':
     print("------ Running Fine Tuning with arguments------")
     print(args)
-    
     seed_all(args.seed) 
+    
+    wandb.init(
+            project="ph-img-classification",
+            name=f"{args.name}_{args.hidden_size}_lr{args.lr}",
+            config=vars(args)
+    )
+
+
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f'Using device: {device}')
 
@@ -59,9 +65,6 @@ if __name__ == '__main__':
     model = torch.compile(model, mode="reduce-overhead")
     
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4, fused=True)
-    lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
-
     # model, _ = train_model(model = model,
     #                        dataloaders = {"train": train_loader, "val": val_loader}, 
     #                        criterion = criterion,
@@ -74,5 +77,6 @@ if __name__ == '__main__':
                            dataloaders = {"train": train_loader, "val": val_loader}, 
                            criterion = criterion,
                            args = args,
-                           tensor_board_path = tensor_board_path,
                            resume_path=resume_path)
+    wandb.finish()
+
