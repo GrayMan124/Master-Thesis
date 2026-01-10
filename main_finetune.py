@@ -30,12 +30,12 @@ if __name__ == '__main__':
     # cache_dir = './data/caltech256_processed/'
     # cache_dir = './data/tinyImageNet/'
     cache_dir = '/mnt/sam/pi_data/processed_data/tinyImageNet/'
-    versions = [f'train_v{i}' for i in range(3)]
+    versions = [f'train_v{i}' for i in range(10)]
 
     if not os.path.isdir(os.path.join(cache_dir,versions[-1])):
         print("----- Processed Data not found ------")
         ds = load_dataset("zh-plus/tiny-imagenet")
-        process_data(data_set= ds, data_path= cache_dir, num_versions= 3 , args=args)
+        process_data(data_set= ds, data_path= cache_dir, num_versions= 10 , args=args)
     else:
         print("----- Using Cached Dataset ----- ")
     
@@ -51,11 +51,11 @@ if __name__ == '__main__':
 
     base_model = resnet50(weights = "IMAGENET1K_V2")
     
-    # model = PIFineTuneModel(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
-    # model.to(device)
-
-    model = ResNetFineTune(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
+    model = PIFineTuneModel(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
     model.to(device)
+
+    # model = ResNetFineTune(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
+    # model.to(device)
     model = torch.compile(model, mode="reduce-overhead")
     
     criterion = nn.CrossEntropyLoss()

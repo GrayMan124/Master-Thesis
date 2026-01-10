@@ -141,9 +141,9 @@ class PIFineTuneModel(nn.Module):
 
         else: #Based on resnet - for now a potential change in the future KEKW
             if args.topodim_concat:
-                self.topo_net = TopoIMG_ResNet(2,256, args = args)
+                self.topo_net = TopoIMG_ResNet(2, args.hidden_size , args = args)
             else:    
-                self.topo_net = TopoIMG_ResNet(1,256, args = args)
+                self.topo_net = TopoIMG_ResNet(1, args.hidden_size, args = args)
         
         if args.config:
             layers = [layer_from_config(layer_config) for layer_config in args.config["fc"]]
