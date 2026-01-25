@@ -2,6 +2,7 @@ import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 os.environ["HF_HOME"] = "/mnt/sam/pi_data/"
 import torch
+import numpy as np
 from torch.utils.data import  random_split
 from pathlib import Path
 from tqdm import tqdm
@@ -18,17 +19,23 @@ class PrecomputedDataset(torch.utils.data.Dataset):
                          For training: ['train_v0', 'train_v1', ...]
                          For val: ['val']
         """
+        self.version_folders = version_folders
+        self.data_dir = Path(data_dir)
         self.files = []
         self.transform = transform
-        for v_folder in version_folders:
-            path = Path(data_dir) / v_folder
-            self.files.extend(list(path.glob("*.pt")))
+        first_folder = self.data_dir / version_folders[0]
+        self.file_names = [p.name for p in first_folder.glob("*.pt") ]
 
     def __len__(self):
-        return len(self.files)
+        return len(self.file_names)
 
     def __getitem__(self, idx):
-        img_tensor, topo, label = torch.load(self.files[idx])
+        filename = self.file_names[idx]
+
+        selected_version = np.random.choice(self.version_folders)
+        full_path = self.data_dir / selected_version / filename
+        img_tensor, topo, label = torch.load(full_path)
+
         if self.transform:
             img_tensor = self.transform(img_tensor)
 

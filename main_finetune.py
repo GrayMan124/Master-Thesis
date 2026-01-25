@@ -45,17 +45,17 @@ if __name__ == '__main__':
     train_ds = PrecomputedDataset(cache_dir, version_folders=versions, transform=resize_transform)
     val_ds = PrecomputedDataset(cache_dir, version_folders=['val'], transform=resize_transform)
 
-    train_loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers= args.num_workers, pin_memory=True)
-    val_loader = DataLoader(val_ds, batch_size=64, shuffle=False, num_workers= args.num_workers, pin_memory=True)
+    train_loader = DataLoader(train_ds, batch_size = args.batch_size, shuffle=True, num_workers= args.num_workers, pin_memory=True)
+    val_loader = DataLoader(val_ds, batch_size= args.batch_size, shuffle=False, num_workers= args.num_workers, pin_memory=True)
     
 
     base_model = resnet50(weights = "IMAGENET1K_V2")
     
-    model = PIFineTuneModel(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
-    model.to(device)
-
-    # model = ResNetFineTune(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
+    # model = PIFineTuneModel(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
     # model.to(device)
+
+    model = ResNetFineTune(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
+    model.to(device)
     model = torch.compile(model, mode="reduce-overhead")
     
     criterion = nn.CrossEntropyLoss()
@@ -68,7 +68,8 @@ if __name__ == '__main__':
     #                        optimizer = optimizer,
     #                        args = args,
     #                        tensor_board_path = tensor_board_path)
-    resume_path = None
+    # resume_path = './checkpoint.pth' 
+    resume_path = None 
 
     model, _ = train_model(model = model,
                            dataloaders = {"train": train_loader, "val": val_loader}, 

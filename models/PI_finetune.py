@@ -66,7 +66,7 @@ class TopoIMG_ResNet(nn.Module): #this is based on the resnet implementation on 
                     self.__make_layer(64, 64, stride=1),
                     self.__make_layer(64, 128, stride=2),
                     self.__make_layer(128, 256, stride=2),
-                    # self.__make_layer(256, 512, stride=2)
+                   # self.__make_layer(256, 512, stride=2)
 
             )
             self.fc = nn.Linear(256, hidden_size)
