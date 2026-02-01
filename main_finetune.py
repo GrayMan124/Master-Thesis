@@ -27,23 +27,21 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f'Using device: {device}')
 
-    # cache_dir = './data/caltech256_processed/'
-    # cache_dir = './data/tinyImageNet/'
-    cache_dir = '/mnt/sam/pi_data/processed_data/tinyImageNet/'
+    data_path = args.data_path
     versions = [f'train_v{i}' for i in range(10)]
 
-    if not os.path.isdir(os.path.join(cache_dir,versions[-1])):
+    if not os.path.isdir(os.path.join(data_path,versions[-1])):
         print("----- Processed Data not found ------")
         ds = load_dataset("zh-plus/tiny-imagenet")
-        process_data(data_set= ds, data_path= cache_dir, num_versions= 10 , args=args)
+        process_data(data_set= ds, data_path= data_path, num_versions= 10 , args=args)
     else:
         print("----- Using Cached Dataset ----- ")
     
     resize_transform = transforms.Compose([
         transforms.Resize((224,224), antialias = True)
                                            ])
-    train_ds = PrecomputedDataset(cache_dir, version_folders=versions, transform=resize_transform)
-    val_ds = PrecomputedDataset(cache_dir, version_folders=['val'], transform=resize_transform)
+    train_ds = PrecomputedDataset(data_path, version_folders=versions, transform=resize_transform)
+    val_ds = PrecomputedDataset(data_path, version_folders=['val'], transform=resize_transform)
 
     train_loader = DataLoader(train_ds, batch_size = args.batch_size, shuffle=True, num_workers= args.num_workers, pin_memory=True)
     val_loader = DataLoader(val_ds, batch_size= args.batch_size, shuffle=False, num_workers= args.num_workers, pin_memory=True)

@@ -1,6 +1,5 @@
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
-os.environ["HF_HOME"] = "/mnt/sam/pi_data/"
 import torch
 import numpy as np
 from torch.utils.data import  random_split

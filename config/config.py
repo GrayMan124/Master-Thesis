@@ -1,4 +1,5 @@
 import argparse
+import os
 
 def convert_arg_line_to_args(arg_line):
     for arg in arg_line.split():
@@ -6,8 +7,19 @@ def convert_arg_line_to_args(arg_line):
             continue
         yield arg
 
+def get_env_var(var_name, default):
+    path = os.getenv(var_name, default=default)
+
+    if not os.path.exists(path):
+        print(f"Warning: {path} Does not exists")
+    return path 
+
 #The argparser part
 argparser = argparse.ArgumentParser(fromfile_prefix_chars='@')
+
+#env variables 
+argparser.add_argument('--data_path',default = get_env_var("DATA_PATH","./data"), type=str, help="Path to the data")
+
 argparser.add_argument("--lr", default=0.0003, type=float, help="Meta-learning rate (used on query set - potentially acoss tasks)")
 argparser.add_argument("--seed", default=119, type=int, help="Seed to use")
 argparser.add_argument("--model", default="TBR", type=str, help="Select model, avaliable models are ResNet, TR, TBR")

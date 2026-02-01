@@ -4,4 +4,5 @@ best_checkpoint.pth
 Old_code
 results
 runs
+.envrc
 
