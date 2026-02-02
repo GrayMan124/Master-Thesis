@@ -73,5 +73,4 @@ if __name__ == '__main__':
                            dataloaders = {"train": train_loader, "val": val_loader}, 
                            criterion = criterion,
                            args = args,
-                           tensor_board_path = tensor_board_path,
                            resume_path=resume_path)

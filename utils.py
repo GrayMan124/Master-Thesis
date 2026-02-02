@@ -1,11 +1,12 @@
 import os
+import wandb
+from wandb.sdk.wandb_run import wandb_metric
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 import time
-from torch.utils.tensorboard import SummaryWriter
 import copy
 from config.config import args
 # from torch.cuda.amp import autocast, GradScaler
@@ -106,7 +107,12 @@ def test_model(model, dataloader,criterion, optimizer):
 
 result_file = 'results.csv'
 
-def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_path=None):
+def train_model(model, dataloaders, criterion, args,  resume_path=None):
+    wandb.init(
+        project = "ph-robust-img",
+        name = args.name if args.name else "unnamed run",
+        config=vars(args)
+    )
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
 
@@ -119,7 +125,6 @@ def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_p
                                             optimizer=optimizer,
                                             scheduler=lr_scheduler,
                                             file_name=resume_path) 
-    writer = SummaryWriter(log_dir=tensor_board_path)
     since = time.time()
     val_acc_history = []
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -129,7 +134,14 @@ def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_p
     for epoch in range(start_epoch, args.epochs):
         print('Epoch {}/{}'.format(epoch, args.epochs - 1))
         print('-' * 10)
-
+        
+        wandb_metrics = {
+            "epoch": epoch,
+            "train/loss": None,
+            "train/acc": None,
+            "val/loss":None,
+            "val/acc":None,
+        }
         for phase in ['train', 'val']:
             if phase == 'train':
                 model.train()
@@ -175,14 +187,11 @@ def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_p
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
             epoch_acc = running_corrects / len(dataloaders[phase].dataset)
 
-            if phase == 'train':
-                writer.add_scalar("Loss/train", epoch_loss, epoch)
-                writer.add_scalar("Accuracy/train", epoch_acc, epoch)
-            else:
-                writer.add_scalar("Loss/Val", epoch_loss, epoch)
-                writer.add_scalar("Accuracy/Val", epoch_acc, epoch)
+            # refactor this 
+            wandb_metrics[f"{phase}/Loss"] = epoch_loss
+            wandb_metrics[f"{phase}/Acc"] = epoch_acc
                 
-                lr_scheduler.step(epoch_loss)
+            lr_scheduler.step(epoch_loss)
 
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
 
@@ -194,8 +203,10 @@ def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_p
                 
             if phase == 'val':
                 val_acc_history.append(epoch_acc)
-
         
+        wandb_metrics['lr'] = optimizer.param_groups[0]['lr']
+        wandb.log(wandb_metrics,step = epoch)
+
         save_checkpoint(model=model, optimizer=optimizer, scheduler=lr_scheduler,epoch=epoch,loss=best_loss, file_name="checkpoint.pth")
 
     time_elapsed = time.time() - since
@@ -206,137 +217,6 @@ def train_model(model, dataloaders, criterion, args, tensor_board_path, resume_p
     
     return model, val_acc_history
 
-#Training function
-# def train_model(model, dataloaders, criterion, optimizer, args, tensor_board_path):
-#     print('Traning model')
-#
-#     writer = SummaryWriter(log_dir = tensor_board_path)
-#     since = time.time()
-#     val_acc_history = []
-#     best_model_wts = copy.deepcopy(model.state_dict())
-#     best_acc = 0.0
-#
-#     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)
-#     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)#, verbose=True)
-#
-#     train_acc = 0.0
-#     train_loss = 10
-#     val_loss = 0.0
-#
-#     num_epochs = args.epochs
-#     for epoch in range(num_epochs):
-#         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
-#         print('-' * 10)
-#
-#         for phase in ['train', 'val']: # Each epoch has a training and validation phase
-#             if phase == 'train':
-#                 model.train()  # Set model to training mode
-#             else:
-#                 model.eval()   # Set model to evaluate mode
-#
-#             running_loss = 0.0
-#             running_corrects = 0
-#
-#             for inputs, labels in tqdm(dataloaders[phase]): # Iterate over data
-#                 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-#                 # inputs = transforms.functional.resize(inputs, (112, 112))
-#                 if args.model != 'ResNet':
-#                     x1,x2 = inputs
-#                     x1.to(device)
-#                     x2.to(device)
-#                     inputs = (x1,x2)
-#                 else:
-#                     inputs = inputs.to(device)
-#                 labels = labels.to(device)
-#
-#                 optimizer.zero_grad() # Zero the parameter gradients
-#
-#                 with torch.set_grad_enabled(phase == 'train'): # Forward. Track history if only in train
-#
-#                     outputs = model(inputs)
-#                     loss = criterion(outputs, labels)
-#                     _, preds = torch.max(outputs, 1)
-#
-#                     if phase == 'train': # Backward + optimize only if in training phase
-#                         loss.backward()
-#                         optimizer.step()
-#
-#                 if args.model != 'ResNet':
-#                     # batch_size = inputs.size(0)
-#                     batch_size = inputs[0].size(0)
-#                 else:
-#                     batch_size = inputs[0].size(0)
-#                 # Statistics
-#                 running_loss += loss.item() * batch_size 
-#                 running_corrects += torch.sum(preds == labels.data)
-#
-#             epoch_loss = running_loss / len(dataloaders[phase].dataset)
-#             epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
-#
-#             if phase =='val':
-#                 writer.add_scalar("Loss/train", epoch_loss, epoch)
-#                 writer.add_scalar("Accuracy/train", epoch_acc, epoch)
-#                 if epoch_loss < val_loss:
-#                     val_loss = epoch_loss
-#             else:
-#                 if epoch_loss < train_loss:
-#                     train_loss = epoch_loss
-#                 if epoch_acc > train_acc:
-#                     train_acc = epoch_acc
-#                 writer.add_scalar("Loss/Val", epoch_loss, epoch)
-#                 writer.add_scalar("Accuracy/Val", epoch_acc, epoch)
-#
-#             if phase == 'val': # Adjust learning rate based on val loss
-#                 lr_scheduler.step(epoch_loss)
-#
-#
-#
-#             print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
-#
-#             # deep copy the model
-#             if phase == 'val' and epoch_acc > best_acc:
-#                 best_acc = epoch_acc
-#                 best_loss = val_loss
-#                 best_model_wts = copy.deepcopy(model.state_dict())
-#             if phase == 'val':
-#                 val_acc_history.append(epoch_acc)
-#
-#         print()
-#
-#     writer.flush()
-#     writer.close()
-#     time_elapsed = time.time() - since
-#     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-#     print('Best val Acc: {:4f}'.format(best_acc))
-#
-#     results_dict = {
-#         "Model_Name":args.name,
-#         "Topology_Vect":args.tv,
-#         "Model_arch":args.model,
-#         "LR":args.lr,
-#         "TopoDim_concat":args.topodim_concat,
-#         "TopoDim": args.topodim,
-#         "Config_file":args.config,
-#         "Augmentation":args.aug,
-#         "Augmentation_Type":args.aug_type,
-#         "Train_loss":train_loss,
-#         "Train_Acc":train_acc*100,
-#         "Val_Loss":best_loss,
-#         "Val_Acc":best_acc*100
-#     }
-#
-#     result_df = pd.DataFrame([results_dict])
-#
-#     try:
-#         df = pd.read_csv(result_file)
-#         new_df = pd.concat([df,result_df],ignore_index = True)
-#         new_df.to_csv(result_file,index= False)
-#     except:
-#         result_df.to_csv(result_file,index=False) 
-#
-#     model.load_state_dict(best_model_wts)
-#     return model, val_acc_history
-#
 
 def save_checkpoint(model, optimizer, scheduler, epoch, loss, file_name="checkpoint.pth"):
     checkpoint = {
