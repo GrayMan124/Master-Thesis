@@ -48,12 +48,14 @@ if __name__ == '__main__':
     
 
     base_model = resnet50(weights = "IMAGENET1K_V2")
-    
-    # model = PIFineTuneModel(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
-    # model.to(device)
-
-    model = ResNetFineTune(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
-    model.to(device)
+    if args.modelFT == 'PI_IMG': 
+        model = PIFineTuneModel(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
+        model.to(device)
+    elif args.modelFT == "ResNet50":
+        model = ResNetFineTune(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
+        model.to(device)
+    else:
+        raise Exception(f"Unrecognized modelFT argument: {argrs.modelFT}")
     model = torch.compile(model, mode="reduce-overhead")
     
     criterion = nn.CrossEntropyLoss()
@@ -74,3 +76,6 @@ if __name__ == '__main__':
                            criterion = criterion,
                            args = args,
                            resume_path=resume_path)
+    if args.sm:
+        print("savingModel")
+        torch.save(model, f'./saveModels/{args.name}.pkl')
