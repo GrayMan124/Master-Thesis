@@ -3,7 +3,6 @@ import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import torch
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
 import torch.nn as nn
 import torch.optim as optim
 from torchvision.models import resnet50 
@@ -16,8 +15,6 @@ from utils import train_model, seed_all
 from models.PI_finetune import PIFineTuneModel
 from models.FineTuneResNet import ResNetFineTune
 
-
-tensor_board_path = 'runs/' + args.name + args.model + '_' + args.tv + '_' + str(args.lr) + '_' + str(args.res) + '_' + str(args.seed) + '_' + str(args.topodim)   
 
 if __name__ == '__main__':
     print("------ Running Fine Tuning with arguments------")
@@ -55,11 +52,12 @@ if __name__ == '__main__':
         model = ResNetFineTune(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
         model.to(device)
     else:
-        raise Exception(f"Unrecognized modelFT argument: {argrs.modelFT}")
+        raise Exception(f"Unrecognized modelFT argument: {args.modelFT}")
     model = torch.compile(model, mode="reduce-overhead")
     
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4, fused=True)
+
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
 
     # model, _ = train_model(model = model,
@@ -78,4 +76,4 @@ if __name__ == '__main__':
                            resume_path=resume_path)
     if args.sm:
         print("savingModel")
-        torch.save(model, f'./saveModels/{args.name}.pkl')
+        torch.save(model.state_dict(), f'./saveModels/{args.name}.pkl')

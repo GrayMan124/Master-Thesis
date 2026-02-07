@@ -67,42 +67,97 @@ def count_parameters(model):
     else:
         print("\nModel has no parameters.")
 
-def test_model(model, dataloader,criterion, optimizer):
+def accuracy_test(output,target, topk = (1,5)):
+    with torch.inference_mode():
+        maxk = max(topk)
+        batch_size = target.size(0)
+
+        _, pred = output.topk(maxk, 1 , True, True)
+        pred = pred.t()
+
+        correct = pred.eq(target.view(1,-1).expand_as(pred))
+
+        res = []
+        for k in topk:
+            correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
+            res.append(correct_k.mul(1.0/ batch_size).item())
+        return res
+
+
+@torch.inference_mode()
+def test_model(model, dataloader,criterion ):
     print('Testing model')
     model.eval()
     running_loss = 0.0
-    running_corrects = 0
+    running_top1 = 0.0
+    running_top5 = 0.0
+    total_samples = 0
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     for inputs, labels in tqdm(dataloader):
 
         if args.model != 'ResNet':
             x1,x2 = inputs
-            x1.to(device)
-            x2.to(device)
-            inputs = (x1,x2)
+            x1 = x1.to(device)
+            x2 = x2.to(device)
+            inputs = (x1, x2)
+            current_batch_size = x1.size(0) 
         else:
             inputs = inputs.to(device)
-
+            current_batch_size = inputs.size(0)
         labels = labels.to(device)
-        optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)
-        optimizer.zero_grad() 
 
-        with torch.set_grad_enabled(False): 
-
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            _, preds = torch.max(outputs, 1)
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+        acc1, acc5 = accuracy_test(output= outputs, target = labels, topk=(1,5))
 
         # Statistics
-        running_loss += loss.item() * inputs[0].size(0)
-        running_corrects += torch.sum(preds == labels.data).item()
+        running_loss += loss.item() * current_batch_size
+        running_top1 += acc1 * current_batch_size
+        running_top5 += acc5 * current_batch_size
+        total_samples += current_batch_size
 
 
-    total_loss = running_loss / len(dataloader.dataset)
-    total_acc = running_corrects / len(dataloader.dataset)
-    print('{} Loss: {:.4f} Acc: {:.4f}'.format('Test', total_loss, total_acc))
+    avg_loss = running_loss / total_samples
+    avg_top1 = running_top1 / total_samples
+    avg_top5 = running_top5 / total_samples
+    print('Test Results:\nLoss: {:.4f}\n Top-1: {:.4f}\nTop-5: {:.4f}'.format(avg_loss, avg_top1, avg_top5))
+    return avg_loss, avg_top1, avg_top5
 
+# @torch.inference_mode()
+# def test_model(model, dataloader,criterion ):
+#     print('Testing model')
+#     model.eval()
+#     running_loss = 0.0
+#     running_corrects = 0
+#     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+#
+#     for inputs, labels in tqdm(dataloader):
+#
+#         if args.model != 'ResNet':
+#             x1,x2 = inputs
+#             x1 = x1.to(device)
+#             x2 = x2.to(device)
+#             inputs = (x1, x2)
+#             current_batch_size = x1.size(0) 
+#         else:
+#             inputs = inputs.to(device)
+#             current_batch_size = inputs.size(0)
+#         labels = labels.to(device)
+#
+#         outputs = model(inputs)
+#         loss = criterion(outputs, labels)
+#         _, preds = torch.max(outputs, 1)
+#
+#         # Statistics
+#         running_loss += loss.item() * current_batch_size
+#         running_corrects += torch.sum(preds == labels.data).item()
+#
+#
+#     total_loss = running_loss / len(dataloader.dataset)
+#     total_acc = running_corrects / len(dataloader.dataset)
+#     print('{} Loss: {:.4f} Acc: {:.4f}'.format('Test', total_loss, total_acc))
+#
 
 
 result_file = 'results.csv'
@@ -191,7 +246,7 @@ def train_model(model, dataloaders, criterion, args,  resume_path=None):
             wandb_metrics[f"{phase}/Loss"] = epoch_loss
             wandb_metrics[f"{phase}/Acc"] = epoch_acc
                 
-            lr_scheduler.step(epoch_loss)
+            # This should be outside the phase loop monka Hmm 
 
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
 
@@ -201,7 +256,8 @@ def train_model(model, dataloaders, criterion, args,  resume_path=None):
                 best_loss = epoch_loss # Capture best loss too
                 best_model_wts = copy.deepcopy(model.state_dict())
                 
-            if phase == 'val':
+            if phase == 'val': #this should be here (?)
+                lr_scheduler.step(epoch_loss)
                 val_acc_history.append(epoch_acc)
         
         wandb_metrics['lr'] = optimizer.param_groups[0]['lr']

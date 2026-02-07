@@ -40,27 +40,6 @@ class PrecomputedDataset(torch.utils.data.Dataset):
 
         return (img_tensor, topo), label
 
-# def apply_train_transformation(batch):
-#     # print(batch['image'])
-#     # images = [transform_train(img.convert('RGB')) for img in batch['image']]
-#     images = transform_train(batch['image'].convert('RGB'))
-#     batch['pixel_values'] = images 
-#
-#     return batch
-#
-#
-# def apply_val_transformation(batch):
-#     images = [val_transforms(img.convert('RGB')) for img in batch['image']]
-#     batch['pixel_values'] = images 
-#
-#     return batch
-#
-# def custom_collate(batch_list):
-#     inputs = torch.stack([item['pixel_values'] for item in batch_list])
-#
-#     labels = torch.tensor([item['label'] for item in batch_list])
-#
-#     return inputs, labels
 
 def get_train_val_split(data_set, val_size):
     train_ratio = 1 - val_size 
@@ -84,7 +63,6 @@ def process_data(data_set, data_path, num_versions,  args):
     train_subset, val_subset = get_train_val_split(data_set = data_set, val_size = args.val_size) 
     save_path = Path(data_path)
 
-    # --- PROCESS VALIDATION (Do this once) ---
     print("Processing Validation Set...")
     val_save_path = save_path / "val"
     val_save_path.mkdir(parents=True, exist_ok=True)
@@ -108,4 +86,22 @@ def process_data(data_set, data_path, num_versions,  args):
             label = train_subset[idx]['label']
             tensor_data, topo_data = processing_train(img_pil)
             torch.save((tensor_data, topo_data, label), version_path / f"{idx}.pt")
+
+
+def process_test(data_set, data_path, args):
+    data_set = data_set['test'] 
+
+    save_path = Path(data_path)
+
+    print("Processing Test Set...")
+    test_save_path = save_path / "test"
+    test_save_path.mkdir(parents=True, exist_ok=True)
+
+    processing_test = AugmentAndCalculateFeatures(train=False, args = args)
+
+    for idx in tqdm(range(len(data_set))):
+        img_pil = data_set[idx]['image']
+        label = data_set[idx]['label']
+        tensor_data, topo_data = processing_test(img_pil)
+        torch.save((tensor_data, topo_data, label), test_save_path/ f"{idx}.pt")
 
