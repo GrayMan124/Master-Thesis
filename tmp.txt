@@ -1,0 +1,5 @@
+------ Running Fine Tuning with arguments------
+Using device: cuda:0
+Namespace(data_path='./data', lr=0.0003, seed=119, model='TBR', modelFT='PI_IMG', tv='land', res=100, tbs='normal', sm=False, bw='cv2', topodim=1, topodim_concat=False, epochs=50, cores=8, batch_size=64, val_size=0.2, num_workers=2, config=None, name='FT_PH_L_TEST', tb_add_x=False, tb_add_t=False, aug=0, aug_type='all', freeze_weights=False, hidden_size=256, run_id='', modelPath='./saveModels')
+Looking for data in ./data
+----- Using Cached Dataset ----- 

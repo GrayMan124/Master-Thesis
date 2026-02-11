@@ -2,9 +2,7 @@ import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import torch
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
 import torch.nn as nn
-import torch.optim as optim
 import wandb
 from torchvision.models import resnet50 
 from torchvision import transforms 
@@ -12,7 +10,7 @@ from datasets import load_dataset
 
 from config.config import args
 from dataProcessing.processing import PrecomputedDataset, process_test
-from utils import test_model, train_model, seed_all
+from utils import test_model, seed_all
 from models.PI_finetune import PIFineTuneModel
 from models.FineTuneResNet import ResNetFineTune
 
@@ -26,10 +24,10 @@ if __name__ == '__main__':
     seed_all(args.seed) 
 
     data_path = args.data_path
-
+    print(f"Looking for data in {data_path}")
     if not os.path.isdir(os.path.join(data_path,'test')):
         print("----- Processed TEST Data not found ------")
-        ds = load_dataset("zh-plus/tiny-imagenet")
+        ds = load_dataset("zh-plus/tiny-imagenet",split='valid')
         process_test(data_set= ds, data_path= data_path,  args=args)
     else:
         print("----- Using Cached Dataset ----- ")
@@ -50,17 +48,25 @@ if __name__ == '__main__':
         model.to(device)
     else:
         raise Exception(f"Unrecognized modelFT argument: {args.modelFT}")
-   
-    model.load_state_dict(torch.load(os.path.join(args.modelPath,f"{args.name}.pkl"),weights_only=True))
+    # model.compile() 
+    state_dict = torch.load(os.path.join(args.modelPath, f"{args.name}.pkl"), weights_only=True)
+
+    new_state_dict = {}
+    for k, v in state_dict.items():
+        new_key = k.replace("_orig_mod.", "")
+        new_state_dict[new_key] = v
+
+    model.load_state_dict(new_state_dict)
     criterion = nn.CrossEntropyLoss()
-    wandb.init(
+    run = wandb.init(
         project = "ph-robust-img",
         id = args.run_id,
         resume = "must"
     )
 
     loss, top1, top5 = test_model(model = model, dataloader = test_loader , criterion = criterion)
-    wandb.run.summary["test/top1"] = top1
-    wandb.run.summary["test/top5"] = top5
-    wandb.run.summary["test/loss"] = loss 
+    run.summary.update({
+        "test/top1": top1,
+        "test/top5" :  top5,
+        "test/loss": loss })
     wandb.finish()

@@ -89,7 +89,7 @@ def process_data(data_set, data_path, num_versions,  args):
 
 
 def process_test(data_set, data_path, args):
-    data_set = data_set['test'] 
+    # data_set = data_set['test'] 
 
     save_path = Path(data_path)
 

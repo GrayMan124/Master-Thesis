@@ -45,5 +45,6 @@ argparser.add_argument("--aug_type", default="all", type=str, help="Data augment
 argparser.add_argument("--freeze_weights", default=False, action="store_true", help="Freeze base model wieghts")
 argparser.add_argument("--hidden_size", default=256, type=int, help="Size of the hidden vector for both Homology and image features")
 argparser.add_argument("--run_id", default="" , type=str, help="Run id from W&B to be used for resuming or testing")
+argparser.add_argument("--modelPath", default="./saveModels" , type=str, help="Path to the directory where models are stored")
 
 args = argparser.parse_args()
