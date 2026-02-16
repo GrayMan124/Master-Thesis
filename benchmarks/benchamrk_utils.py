@@ -4,30 +4,59 @@ from autoattack import AutoAttack
 from torchvision import transforms
 import numpy as np
 
+def process_topo_batch(numpy_batch, topo_vectorization):
+
+    
+    results = []
+    for sample in numpy_batch:
+        results.append(topo_vectorization(sample))
+    
+    # topo_features = [item[1] for item in results]
+    tensor_topo_data = torch.stack(results,dim=0)
+
+    return tensor_topo_data 
 class ModelWrapper(nn.Module):
-    
-    def __init__(self,model, topo_func, device):
-        super().__init__()
+
+    def __init__(self,model, topo_func, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
         self.model = model 
-        self.topo_func = topo_func
-        self.device = device
+        self.topo_vectorization = topo_func 
 
-        self.normalize = transforms.Normalize(
-                mean=[0.485,0.456,0.406],
-            std=[0.229,0.224,0.225]
-        )
+        self.final_image_transform_val = transforms.Compose([
+            transforms.ToTensor(), # Converts (H, W, C) NumPy to (C, H, W) Tensor
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], 
+                                 std=[0.229, 0.224, 0.225])
+        ])
+        self.pi_transform = transforms.Compose([
+             transforms.ToTensor(),
+            transforms.Normalize(mean=0 , std = 1247.8710)
+            ])
     
-    def forward(self, x):
-        x_norm = self.normalize(x)
-        x_cpu = x.detach().mul(255).type(torch.uint8).permute(0,2,3,1).cpu().numpy()
+    def predict(self,x):
+        output = self.model(x)
+        _, prediction = torch.max(output,1)
+        return prediction
 
-        topo_features = self.topo_func(x_cpu)
-        topo_features = topo_features.to(self.device)
+    def forward(self,x):
+        if x.device != self.model.device:
+            x = x.to(self.model.device)
+        
+        
+        current_device = x.device
+        
+        x_detached = x.detach().cpu()
+        numpy_batch = (x_detached.permute(0,2,3,1)*255).numpy().astype(np.uint8)
+        # topo_features = process_topo_batch(numpy_batch, self.topo_vectorization, self.from_train)
+        topo_features = process_topo_batch(numpy_batch=numpy_batch, topo_vectorization=self.topo_vectorization) 
+        topo_features = self.pi_transform(topo_features)
+        topo_features = topo_features.to(current_device)
 
-        return self.model((x_norm, topo_features))
+        x = self.final_image_transform_val(x)
+        
+        return self.model((x,topo_features))
 
-
-def run_auto_attack(model, x_test,y_test,log_path, eps = 8/255):
+def run_auto_attack(model, x_test, y_test, log_path, eps = 8/255):
     print(f"Stargint AutoAttack testing")
     
     adversary = AutoAttack(
