@@ -65,7 +65,6 @@ def run_auto_attack(model, x_test, y_test, log_path, eps = 8/255):
             eps= eps,
             version = 'custom',
             attacks_to_run = ['apgd-ce','apgd-t'],#['square'],
-            log_path = log_path
     )
 
     adversary.apgd.n_restarts = 1
