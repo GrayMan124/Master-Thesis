@@ -80,7 +80,6 @@ if __name__ == '__main__':
     wrapped_model = ModelWrapper(
             model = model,
             topo_func=topo_func_partial,
-            device = device
     )
 
     run_auto_attack(model=wrapped_model, x_test= None, y_test=None, log_path='./')
