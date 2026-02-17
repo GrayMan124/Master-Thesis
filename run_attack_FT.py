@@ -69,7 +69,7 @@ if __name__ == '__main__':
         new_state_dict[new_key] = v
 
     model.load_state_dict(new_state_dict)
-    model.eval()
+    # model.eval()
     # criterion = nn.CrossEntropyLoss()
     # run = wandb.init(
     #     project = "ph-robust-img",
