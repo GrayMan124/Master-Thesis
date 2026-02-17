@@ -5,7 +5,7 @@ import numpy as np
 from torch.utils.data import  random_split
 from pathlib import Path
 from tqdm import tqdm
-from .topology.topologicalProcessing import AugmentAndCalculateFeatures
+from .topology.topologicalProcessing import AugmentAndCalculateFeatures, calculate_accurate_stats_two_pass, load_stats, save_stats
  
 torch.autograd.set_detect_anomaly(True)
 
@@ -63,12 +63,36 @@ def process_data(data_set, data_path, num_versions,  args):
     train_subset, val_subset = get_train_val_split(data_set = data_set, val_size = args.val_size) 
     save_path = Path(data_path)
 
+    print("----- Calculating Topo statistcs ------- ")
+    raw_stats_stransform = AugmentAndCalculateFeatures(
+        args = args,
+        train= False,
+        pi_mean = None,
+        pi_std=None
+    )
+    
+    class WrapperDataset(torch.utils.data.Dataset):
+        def __init__(self, subset, transform):
+            self.subset = subset
+            self.transform = transform
+        def __len__(self):
+            return len(self.subset)
+        def __getitem__(self, index):
+            item = self.subset[index]
+            img,topo = self.transform(item['image'])
+            return img, topo 
+
+    stats_ds = WrapperDataset(train_subset, raw_stats_stransform)
+
+    pi_mean, pi_std = calculate_accurate_stats_two_pass(stats_ds)
+
+    save_stats(pi_mean, pi_std, save_path)
     print("Processing Validation Set...")
     val_save_path = save_path / "val"
     val_save_path.mkdir(parents=True, exist_ok=True)
 
-    processing_train = AugmentAndCalculateFeatures(train=True, args = args)
-    processing_val = AugmentAndCalculateFeatures(train=False, args = args)
+    processing_train = AugmentAndCalculateFeatures(train=True, args = args, pi_mean=pi_mean, pi_std=pi_std)
+    processing_val = AugmentAndCalculateFeatures(train=False, args = args, pi_mean = pi_mean, pi_std = pi_std)
 
     for idx in tqdm(range(len(val_subset))):
         img_pil = val_subset[idx]['image']
@@ -90,6 +114,12 @@ def process_data(data_set, data_path, num_versions,  args):
 
 def process_test(data_set, data_path, args):
     # data_set = data_set['test'] 
+    save_path = Path(data_path)
+    try: 
+        pi_mean, pi_std = load_stats(save_path)
+        print(f"Loaded Training stats -- Mean: {pi_mean}, Std: {pi_std}")
+    except:
+        raise FileNotFoundError("Could not find topo_stats.json")
 
     save_path = Path(data_path)
 
@@ -97,7 +127,7 @@ def process_test(data_set, data_path, args):
     test_save_path = save_path / "test"
     test_save_path.mkdir(parents=True, exist_ok=True)
 
-    processing_test = AugmentAndCalculateFeatures(train=False, args = args)
+    processing_test = AugmentAndCalculateFeatures(train=False, args = args, pi_mean= pi_mean, pi_std = pi_std)
 
     for idx in tqdm(range(len(data_set))):
         img_pil = data_set[idx]['image']

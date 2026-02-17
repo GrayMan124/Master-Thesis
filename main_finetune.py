@@ -25,7 +25,7 @@ if __name__ == '__main__':
     print(f'Using device: {device}')
 
     data_path = args.data_path
-    versions = [f'train_v{i}' for i in range(10)]
+    versions = [f'train_v{i}' for i in range(2)]
 
     if not os.path.isdir(os.path.join(data_path,versions[-1])):
         print("----- Processed Data not found ------")
