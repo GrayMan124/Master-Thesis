@@ -29,7 +29,7 @@ class ModelWrapper(nn.Module):
                                  std=[0.229, 0.224, 0.225])
         ])
         self.pi_transform = transforms.Compose([
-             transforms.ToTensor(),
+             # transforms.ToTensor(),
             transforms.Normalize(mean=0 , std = 1247.8710)
             ])
     
