@@ -82,5 +82,6 @@ if __name__ == '__main__':
             topo_func=topo_func_partial,
     )
 
-    run_auto_attack(model=wrapped_model, x_test= None, y_test=None, log_path='./logs/')
+    print("-------- Starting the test ------- ")
+    run_auto_attack(model=wrapped_model, x_test= x_test, y_test=y_test, log_path='./logs/')
 
