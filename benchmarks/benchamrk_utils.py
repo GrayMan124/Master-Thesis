@@ -49,7 +49,7 @@ class ModelWrapper(nn.Module):
         numpy_batch = (x_detached.permute(0,2,3,1)*255).numpy().astype(np.uint8)
         # topo_features = process_topo_batch(numpy_batch, self.topo_vectorization, self.from_train)
         topo_features = process_topo_batch(numpy_batch=numpy_batch, topo_vectorization=self.topo_vectorization) 
-        # topo_features = self.pi_transform(topo_features)
+        topo_features = self.pi_transform(topo_features)
         topo_features = topo_features.to(current_device)
 
         x = self.final_image_transform_val(x)
