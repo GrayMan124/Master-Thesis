@@ -82,5 +82,5 @@ if __name__ == '__main__':
             topo_func=topo_func_partial,
     )
 
-    run_auto_attack(model=wrapped_model, x_test= None, y_test=None, log_path='./')
+    run_auto_attack(model=wrapped_model, x_test= None, y_test=None, log_path='./logs/')
 
