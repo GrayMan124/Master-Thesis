@@ -6,6 +6,7 @@ import cv2
 import gudhi as gd 
 import gudhi.representations
 from tqdm import tqdm
+import json
 
 # def process_PI(input, args): #Processing to Persistant images
 #
@@ -47,7 +48,7 @@ def process_PI(input, args): #Processing to Persistant images
     # Calculating persistance
     diag = cubical_complex.persistence()
     # Calculating BettiCurve
-    PI = gd.representations.PersistenceImage(bandwidth=2,resolution=[64,64],weight=lambda x: (x[0] - x[1])**2, im_range=[0,256,0,256])
+    PI = gd.representations.PersistenceImage(bandwidth=5,resolution=[64,64],weight=lambda x: (x[0] - x[1])**2, im_range=[0,256,0,256])
 
     #For the Persistent Images, the concat output gives 2 images - a simple solution
     if args.topodim_concat:
@@ -172,6 +173,7 @@ def calculate_dataset_stats(dataset_loader):
     cnt = 0
     fst_moment = torch.empty(3) # Placeholder
     snd_moment = torch.empty(3)
+    max = 0
     
     # We only need to check the first batch to get channel count
     for i, (images, topo_features) in enumerate(tqdm(dataset_loader)):
@@ -187,6 +189,7 @@ def calculate_dataset_stats(dataset_loader):
         # leaving Channels dimension intact
         sum_ = torch.sum(topo_features, dim=[0, 2, 3])
         sum_sq_ = torch.sum(topo_features ** 2, dim=[0, 2, 3])
+
         
         fst_moment = (cnt * fst_moment + sum_) / (cnt + nb_pixels)
         snd_moment = (cnt * snd_moment + sum_sq_) / (cnt + nb_pixels)
@@ -212,7 +215,7 @@ def calculate_accurate_stats_two_pass(dataset):
     pixel_sum = None
     total_pixels = 0
     n_channels = None
-
+    max = 0
     # PASS 1: Mean
     for i, (images, topo_features) in enumerate(tqdm(loader)):
         # topo_features: (B, C, H, W)
@@ -222,6 +225,8 @@ def calculate_accurate_stats_two_pass(dataset):
 
         # Sum over Batch(0), Height(2), Width(3) -> Result (C,)
         pixel_sum += torch.sum(topo_features, dim=[0, 2, 3]).double()
+        if torch.max(topo_features) > max:
+            max = torch.max(topo_features)
         
         # Count pixels (B * H * W)
         total_pixels += topo_features.shape[0] * topo_features.shape[2] * topo_features.shape[3]
@@ -247,11 +252,11 @@ def calculate_accurate_stats_two_pass(dataset):
     
     print(f"Global Std calculated: {global_std.tolist()}")
 
-    return global_mean.float().tolist(), global_std.float().tolist()
+    return global_mean.float().tolist(), global_std.float().tolist(), max
 
-def save_stats(mean, std, path):
+def save_stats(mean, std, max, path):
     with open(path / 'topo_stats.json', 'w') as f:
-        json.dump({'mean': mean, 'std': std}, f)
+        json.dump({'mean': mean, 'std': std, 'max':max}, f)
 
 def load_stats(path):
     with open(path / 'topo_stats.json', 'r') as f:
