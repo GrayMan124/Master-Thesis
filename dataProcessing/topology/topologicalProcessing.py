@@ -173,7 +173,7 @@ def calculate_dataset_stats(dataset_loader):
     cnt = 0
     fst_moment = torch.empty(3) # Placeholder
     snd_moment = torch.empty(3)
-    max = 0
+    max_t = 0
     
     # We only need to check the first batch to get channel count
     for i, (images, topo_features) in enumerate(tqdm(dataset_loader)):
