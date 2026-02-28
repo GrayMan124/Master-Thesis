@@ -209,13 +209,13 @@ def calculate_accurate_stats_two_pass(dataset):
     Essential for high-variance data like Persistent Images.
     """
     # Create a simple loader just for stats
-    loader = DataLoader(dataset, batch_size=32, shuffle=False, num_workers=4)
+    loader = DataLoader(dataset, batch_size=64, shuffle=False, num_workers=8)
     
     print("--- [Pass 1/2] Calculating Global Mean ---")
     pixel_sum = None
     total_pixels = 0
     n_channels = None
-    max = 0
+    max_t = 0
     # PASS 1: Mean
     for i, (images, topo_features) in enumerate(tqdm(loader)):
         # topo_features: (B, C, H, W)
@@ -225,8 +225,8 @@ def calculate_accurate_stats_two_pass(dataset):
 
         # Sum over Batch(0), Height(2), Width(3) -> Result (C,)
         pixel_sum += torch.sum(topo_features, dim=[0, 2, 3]).double()
-        if torch.max(topo_features) > max:
-            max = torch.max(topo_features)
+        if torch.max(topo_features) > max_t:
+            max_t = torch.max(topo_features)
         
         # Count pixels (B * H * W)
         total_pixels += topo_features.shape[0] * topo_features.shape[2] * topo_features.shape[3]
@@ -252,13 +252,15 @@ def calculate_accurate_stats_two_pass(dataset):
     
     print(f"Global Std calculated: {global_std.tolist()}")
 
-    return global_mean.float().tolist(), global_std.float().tolist(), max
+    return global_mean.float().tolist(), global_std.float().tolist(), [max_t.float().tolist()]
 
-def save_stats(mean, std, max, path):
+def save_stats(mean, std, max_t, path):
+    json_dict = {'mean': mean, 'std': std, 'max':max_t}
+    print(json_dict)
     with open(path / 'topo_stats.json', 'w') as f:
-        json.dump({'mean': mean, 'std': std, 'max':max}, f)
+        json.dump({'mean': mean, 'std': std, 'max':max_t}, f)
 
 def load_stats(path):
     with open(path / 'topo_stats.json', 'r') as f:
         data = json.load(f)
-    return data['mean'], data['std']
+    return data['mean'], data['std'], data['max']

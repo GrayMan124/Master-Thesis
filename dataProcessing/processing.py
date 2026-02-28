@@ -84,16 +84,16 @@ def process_data(data_set, data_path, num_versions,  args):
 
     stats_ds = WrapperDataset(train_subset, raw_stats_stransform)
 
-    pi_mean, pi_std, max = calculate_accurate_stats_two_pass(stats_ds)
+    pi_mean, pi_std, max_t = calculate_accurate_stats_two_pass(stats_ds)
 
-    save_stats(pi_mean, pi_std, max, save_path)
+    save_stats(pi_mean, pi_std, max_t, save_path)
     print("Processing Validation Set...")
     val_save_path = save_path / "val"
     val_save_path.mkdir(parents=True, exist_ok=True)
     
     if args.maxNorm:
-        processing_train = AugmentAndCalculateFeatures(train=True, args = args, pi_mean = [max], pi_std = [0])
-        processing_val = AugmentAndCalculateFeatures(train=False, args = args, pi_mean = [max], pi_std = [0])
+        processing_train = AugmentAndCalculateFeatures(train=True, args = args, pi_mean = [max_t], pi_std = [0])
+        processing_val = AugmentAndCalculateFeatures(train=False, args = args, pi_mean = [max_t], pi_std = [0])
     else:
         processing_train = AugmentAndCalculateFeatures(train=True, args = args, pi_mean=pi_mean, pi_std=pi_std)
         processing_val = AugmentAndCalculateFeatures(train=False, args = args, pi_mean = pi_mean, pi_std = pi_std)
