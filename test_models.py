@@ -58,15 +58,15 @@ if __name__ == '__main__':
 
     model.load_state_dict(new_state_dict)
     criterion = nn.CrossEntropyLoss()
-    run = wandb.init(
-        project = "ph-robust-img",
-        id = args.run_id,
-        resume = "must"
-    )
+    # run = wandb.init(
+    #     project = "ph-robust-img",
+    #     id = args.run_id,
+    #     resume = "must"
+    # )
 
     loss, top1, top5 = test_model(model = model, dataloader = test_loader , criterion = criterion)
-    run.summary.update({
-        "test/top1": top1,
-        "test/top5" :  top5,
-        "test/loss": loss })
-    wandb.finish()
+   # run.summary.update({
+    #     "test/top1": top1,
+    #     "test/top5" :  top5,
+    #     "test/loss": loss })
+    # wandb.finish()

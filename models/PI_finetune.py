@@ -2,7 +2,6 @@ import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import torch
 import torch.nn as nn
-from torch.utils.tensorboard import SummaryWriter
 import json
 
 
@@ -133,6 +132,7 @@ class PIFineTuneModel(nn.Module):
 
         num_features = self.base_model.fc.in_features
         self.base_model.fc = nn.Linear(num_features, args.hidden_size)
+        self.args = args
 
         if args.config: #if the config was set
             raise('This part is not yet inplemented in the config - TopoPI')
@@ -153,6 +153,10 @@ class PIFineTuneModel(nn.Module):
                 nn.ReLU(inplace= True),
                 nn.Linear(args.hidden_size,num_classes )
             )
+    def unfreeze_weights(self):
+        if self.args.freeze_weights:
+            for param in self.base_model.parameters():
+                param.requires_grad = True
 
 
     def forward(self, x):

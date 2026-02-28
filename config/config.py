@@ -47,5 +47,6 @@ argparser.add_argument("--hidden_size", default=256, type=int, help="Size of the
 argparser.add_argument("--run_id", default="" , type=str, help="Run id from W&B to be used for resuming or testing")
 argparser.add_argument("--modelPath", default="./saveModels" , type=str, help="Path to the directory where models are stored")
 argparser.add_argument("--maxNorm", default=False , action = "store_true", help = "Use max norm instead of standarization")
+argparser.add_argument("--ph_test", default=False , action = "store_true", help = "Test the importance of PI")
 
 args = argparser.parse_args()

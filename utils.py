@@ -106,8 +106,20 @@ def test_model(model, dataloader,criterion ):
             inputs = inputs.to(device)
             current_batch_size = inputs.size(0)
         labels = labels.to(device)
+        if not args.ph_test:
+            outputs = model(inputs)
+        else:
+            x1 = torch.nn.functional.interpolate(inputs[0], size= (224,224), mode = 'bilinear', align_corners= False)
+            x1_out = model.base_model(x1)
+            x2_out = model.topo_net(inputs[1])
+            x2_out = x2_out.squeeze(1)
+            new_ids = torch.randperm(x2_out.size(0))
+            x2_perm_out = x2_out[new_ids]
 
-        outputs = model(inputs)
+            fused = torch.cat([x1_out,x2_perm_out],dim=1)
+            outputs = model.fc(fused)
+
+
         loss = criterion(outputs, labels)
         acc1, acc5 = accuracy_test(output= outputs, target = labels, topk=(1,5))
 
@@ -264,6 +276,8 @@ def train_model(model, dataloaders, criterion, args,  resume_path=None):
         wandb.log(wandb_metrics,step = epoch)
 
         save_checkpoint(model=model, optimizer=optimizer, scheduler=lr_scheduler,epoch=epoch,loss=best_loss, file_name="checkpoint.pth")
+        if epoch == 10: #Unfreeze weights after 10 epochs
+            model.unfreeze()
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
