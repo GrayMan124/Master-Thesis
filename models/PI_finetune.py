@@ -153,7 +153,7 @@ class PIFineTuneModel(nn.Module):
                 nn.ReLU(inplace= True),
                 nn.Linear(args.hidden_size,num_classes )
             )
-    def unfreeze_weights(self):
+    def unfreeze(self):
         if self.args.freeze_weights:
             for param in self.base_model.parameters():
                 param.requires_grad = True
