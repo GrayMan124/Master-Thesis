@@ -237,8 +237,12 @@ def train_model(model, dataloaders, criterion, args,  resume_path=None):
                 with torch.set_grad_enabled(phase == 'train'):
                     with autocast('cuda'):
                         outputs = model(inputs)
-                        loss = criterion(outputs, labels)
                     
+                    loss = criterion(outputs, labels)
+                    
+                    if torch.isnan(loss) or torch.isinf(loss):
+                        print(f"WARNING: Loss is {loss.item()} at Epoch {epoch}")
+
                     _, preds = torch.max(outputs, 1)
 
                     if phase == 'train':
@@ -278,6 +282,12 @@ def train_model(model, dataloaders, criterion, args,  resume_path=None):
         save_checkpoint(model=model, optimizer=optimizer, scheduler=lr_scheduler,epoch=epoch,loss=best_loss, file_name="checkpoint.pth")
         if epoch == 10: #Unfreeze weights after 10 epochs
             model.unfreeze()
+            existing_params = set(p for group in optimizer.param_groups for p in group['params'])
+            new_params = [p for p in model.parameters() if p.requires_grad and p not in existing_params]
+            if new_params:
+                backbone_lr = args.lr * 0.1  # 10x smaller than the main LR
+                optimizer.add_param_group({'params': new_params, 'lr': backbone_lr})
+                print(f"Added {len(new_params)} newly unfrozen parameter tensors to the optimizer with LR {backbone_lr}.")
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
