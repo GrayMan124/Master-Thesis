@@ -24,7 +24,9 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f'Using device: {device}')
 
-    data_path = args.data_path
+    data_path = args.data_path  
+    if args.maxNorm:
+        data_path = data_path + "mn"
     versions = [f'train_v{i}' for i in range(10)]
 
     if not os.path.isdir(os.path.join(data_path,versions[-1])):
