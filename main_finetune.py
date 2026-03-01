@@ -58,7 +58,7 @@ if __name__ == '__main__':
     # model = torch.compile(model, mode="reduce-overhead")
     
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4, fused=True)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4, fused=True, eps=1e-4)
 
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
 
