@@ -7,7 +7,7 @@ from pathlib import Path
 from tqdm import tqdm
 from .topology.topologicalProcessing import AugmentAndCalculateFeatures, calculate_accurate_stats_two_pass, load_stats, save_stats
  
-torch.autograd.set_detect_anomaly(True)
+# torch.autograd.set_detect_anomaly(True)
 
     
 class PrecomputedDataset(torch.utils.data.Dataset):

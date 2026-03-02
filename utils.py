@@ -232,13 +232,12 @@ def train_model(model, dataloaders, criterion, args,  resume_path=None):
 
                 labels = labels.to(device)
 
-                optimizer.zero_grad()
+                optimizer.zero_grad(set_to_none = True )
                 
                 with torch.set_grad_enabled(phase == 'train'):
                     with autocast('cuda'):
                         outputs = model(inputs)
-                    
-                    loss = criterion(outputs, labels)
+                        loss = criterion(outputs, labels)
                     
                     if torch.isnan(loss) or torch.isinf(loss):
                         print(f"WARNING: Loss is {loss.item()} at Epoch {epoch}")

@@ -33,7 +33,7 @@ from models.ResNet import *
 from config import args
 
  
-torch.autograd.set_detect_anomaly(True)
+# torch.autograd.set_detect_anomaly(True)
 torch.manual_seed(args.seed)
 
 
