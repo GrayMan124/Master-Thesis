@@ -14,7 +14,7 @@ from dataProcessing.processing import process_data, PrecomputedDataset
 from utils import train_model, seed_all
 from models.PI_finetune import PIFineTuneModel
 from models.FineTuneResNet import ResNetFineTune
-
+torch.autograd.set_detect_anomaly(False)
 
 if __name__ == '__main__':
     print("------ Running Fine Tuning with arguments------")
