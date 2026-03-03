@@ -162,14 +162,11 @@ class TopoIMG_transModel(nn.Module): #This model is specificaly designed to tran
 
         #This implementation gives as output 3x32x32 (given an input of 1x64x64)
 
-        #TODO: Add some options here as well 
         if args.topodim_concat:
             in_ch = 2
         else:
             in_ch = 1
         
-
-        #TODO: Check if this actually works TBH KEKW
         
         if args.tbs == 'small':
             self.conv_network = nn.Sequential(
