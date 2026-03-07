@@ -26,7 +26,7 @@ if args.config:
         config = json.load(f)
     hidden_size = config['hidden_size']
 else:
-    hidden_size = 64
+    hidden_size = 128
 
 
 
@@ -55,6 +55,7 @@ class Block(nn.Module):
         x = self.bn3(x)
         if self.identity_downsample is not None:
             identity = self.identity_downsample(identity)
+        print(f"x shape: {x.shape}\nidentitity shape: {identity.shape}")
         x += identity
         x = self.relu(x)
         return x

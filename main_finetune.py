@@ -52,7 +52,7 @@ if __name__ == '__main__':
         model = PIFineTuneModel(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
     elif args.modelFT == "ResNet50":
         model = ResNetFineTune(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
-    elif args.modelFT == "RN50_Scratch":
+    elif args.modelFT == "RN50_S":
         model = PH_ResNet50(image_channels= 3, num_classes= 200, args = args)
     else:
         raise Exception(f"Unrecognized modelFT argument: {args.modelFT}")
