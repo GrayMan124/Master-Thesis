@@ -58,7 +58,7 @@ if __name__ == '__main__':
         raise Exception(f"Unrecognized modelFT argument: {args.modelFT}")
     model.to(device)
     # model = torch.compile(model, mode="reduce-overhead")
-    
+    count_parameters(model)   
     criterion = nn.CrossEntropyLoss()
     active_params = [p for p in model.parameters() if p.requires_grad]
     # optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4, fused=True, eps=1e-4)
