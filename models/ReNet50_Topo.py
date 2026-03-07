@@ -66,7 +66,7 @@ class TopoIMG_transModel(nn.Module): #This model is specificaly designed to tran
 
 
 class PIBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, inter_channels, args, identity_downsample=None, identity_downsample_t = None, stride=1):
+    def __init__(self, in_channels, inter_channels,out_channels, args, identity_downsample=None, identity_downsample_t = None, stride=1):
         super(PIBlock, self).__init__()
         self.args = args 
         #Base ResNet Block
@@ -192,9 +192,9 @@ class PH_ResNet50(nn.Module):
         
 
         layers = [PIBlock(
-            in_channels,
-            inter_channels, 
-            out_channels, 
+            in_channels = in_channels,
+            inter_channels = inter_channels, 
+            out_channels = out_channels,  
             args = self.args, 
             identity_downsample=identity_downsample,
             identity_downsample_t  = identity_downsample_t,
