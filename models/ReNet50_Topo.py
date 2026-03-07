@@ -66,7 +66,7 @@ class TopoIMG_transModel(nn.Module): #This model is specificaly designed to tran
 
 
 class PIBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, inter_channels, args, identity_downsample=None, stride=1):
+    def __init__(self, in_channels, out_channels, inter_channels, args, identity_downsample=None, identity_downsample_t = None stride=1):
         super(PIBlock, self).__init__()
         self.args = args 
         #Base ResNet Block
@@ -79,7 +79,7 @@ class PIBlock(nn.Module):
         self.relu = nn.ReLU()
         self.identity_downsample = identity_downsample
 
-        self.identity_downsample_t = identity_downsample
+        self.identity_downsample_t = identity_downsample_t
 
         #Topo Section
         if args.tbs == 'small':
@@ -170,7 +170,7 @@ class PH_ResNet50(nn.Module):
             )
 
         self.res_net_fc_topo = nn.Sequential(
-                nn.Linear(512, args.hidden_size),
+                nn.Linear(2048, args.hidden_size),
                 nn.ReLU()
             )
        
@@ -188,10 +188,23 @@ class PH_ResNet50(nn.Module):
         identity_downsample = None
         if stride != 1 or in_channels != out_channels:
             identity_downsample = self.identity_downsample(in_channels, out_channels, stride = stride )
+            identity_downsample_t = self.identity_downsample_t(in_channels, out_channels, stride=stride)
         
-        layers = [PIBlock(in_channels,inter_channels, out_channels, args = self.args, identity_downsample=identity_downsample, stride=stride)] # Iintial block has downsampling
+
+        layers = [PIBlock(
+            in_channels,
+            inter_channels, 
+            out_channels, 
+            args = self.args, 
+            identity_downsample=identity_downsample,
+            idenity_downsample_t = identity_downsample_t,
+            stride=stride)] # Iintial block has downsampling
         for _ in range(num_blocks - 1):
-            layers.append(PIBlock(in_channels = in_channels, inter_channels = inter_channels, out_channels = out_channels, args=self.args))
+            layers.append(PIBlock(
+                in_channels = in_channels,
+                inter_channels = inter_channels,
+                out_channels = out_channels,
+                args=self.args))
         
         return nn.Sequential(*layers)         
 
@@ -229,5 +242,11 @@ class PH_ResNet50(nn.Module):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride, padding=0),
             # nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=2),# padding=1),
+            nn.BatchNorm2d(out_channels)
+        )
+    
+    def identity_downsample_t(self, in_channels, out_channels, stride):
+        return nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride, bias=False), # Pro-tip: bias=False before BatchNorm
             nn.BatchNorm2d(out_channels)
         )
