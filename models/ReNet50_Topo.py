@@ -233,7 +233,7 @@ class PH_ResNet50(nn.Module):
         x_topo = self.res_net_fc_topo(x_topo)
 
         x = torch.cat([x,x_topo],dim=1)
-
+        print(f"x shape: {x.shape}")
         x = self.fc(x)
 
         return x
