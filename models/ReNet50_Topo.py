@@ -122,7 +122,6 @@ class PIBlock(nn.Module):
         if self.identity_downsample is not None:
             identity_t = self.identity_downsample_t(identity_t)
         
-        print(f"x shape: {x.shape}\n idt shape: {identity.shape}")
         x += identity
 
         x += identity_t
@@ -192,7 +191,7 @@ class PH_ResNet50(nn.Module):
         
         layers = [PIBlock(in_channels,inter_channels, out_channels, args = self.args, identity_downsample=identity_downsample, stride=stride)] # Iintial block has downsampling
         for _ in range(num_blocks - 1):
-            layers.append(PIBlock(in_channels = out_channels, inter_channels = inter_channels, out_channels = out_channels, args=self.args))
+            layers.append(PIBlock(in_channels = in_channels, inter_channels = inter_channels, out_channels = out_channels, args=self.args))
         
         return nn.Sequential(*layers)         
 
