@@ -11,7 +11,7 @@ from datasets import load_dataset
 
 from config.config import args
 from dataProcessing.processing import process_data, PrecomputedDataset
-from utils import train_model, seed_all
+from utils import train_model, seed_all, count_parameters
 from models.PI_finetune import PIFineTuneModel
 from models.FineTuneResNet import ResNetFineTune
 from models.ReNet50_Topo import PH_ResNet50
