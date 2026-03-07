@@ -121,8 +121,10 @@ class PIBlock(nn.Module):
 
         if self.identity_downsample is not None:
             identity_t = self.identity_downsample_t(identity_t)
-
+        
+        print(f"x shape: {x.shape}\n idt shape: {identity.shape}")
         x += identity
+
         x += identity_t
 
         x = self.relu(x)
@@ -138,7 +140,6 @@ class PIBlock(nn.Module):
         return x, topo
 
 
-#Base ResNet-50
 class PH_ResNet50(nn.Module):
 
     def __init__(self, image_channels, num_classes,args):
