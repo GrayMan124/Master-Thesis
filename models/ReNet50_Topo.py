@@ -197,7 +197,7 @@ class PH_ResNet50(nn.Module):
             out_channels, 
             args = self.args, 
             identity_downsample=identity_downsample,
-            idenity_downsample_t = identity_downsample_t,
+            identity_downsample_t  = identity_downsample_t,
             stride=stride)] # Iintial block has downsampling
         for _ in range(num_blocks - 1):
             layers.append(PIBlock(
