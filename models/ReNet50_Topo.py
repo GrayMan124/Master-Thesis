@@ -125,7 +125,6 @@ class PIBlock(nn.Module):
         x += identity
         
         aligned_t = nn.functional.interpolate(identity_t, size=(x.shape[2],x.shape[3]),mode='bilinear',align_corners=False)
-        # x += identity_t
         x += aligned_t 
 
         x = self.relu(x)
@@ -133,8 +132,8 @@ class PIBlock(nn.Module):
             topo += identity_t
 
         #Adding the
-        if self.args.tb_add_x:
-            topo+=identity
+        # if self.args.tb_add_x:
+        #     topo+=identity
 
         x = self.relu(x)
 
@@ -187,6 +186,7 @@ class PH_ResNet50(nn.Module):
     def __make_layer(self, in_channels, inter_channels, out_channels, stride, num_blocks):
 
         identity_downsample = None
+        identity_downsample_t = None
         if stride != 1 or in_channels != out_channels:
             identity_downsample = self.identity_downsample(in_channels, out_channels, stride = stride )
             identity_downsample_t = self.identity_downsample_t(in_channels, out_channels, stride=stride)
@@ -226,14 +226,14 @@ class PH_ResNet50(nn.Module):
 
         x = self.avgpool(x)
         x = x.view(x.shape[0], -1)
-
+        x = self.res_net_fc(x)
 
         x_topo = self.avgpool_t(x_topo)
         x_topo = x_topo.view(x_topo.shape[0], -1)
         x_topo = self.res_net_fc_topo(x_topo)
 
         x = torch.cat([x,x_topo],dim=1)
-        print(f"x shape: {x.shape}")
+
         x = self.fc(x)
 
         return x
