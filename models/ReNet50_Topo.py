@@ -123,8 +123,10 @@ class PIBlock(nn.Module):
             identity_t = self.identity_downsample_t(identity_t)
         
         x += identity
-
-        x += identity_t
+        
+        aligned_t = nn.functional.interpolate(identity_t, size=(x.shape[2],x.shape[3]),mode='bilinear',align_corners=False)
+        # x += identity_t
+        x += aligned_t 
 
         x = self.relu(x)
         if self.args.tb_add_t:
@@ -178,8 +180,7 @@ class PH_ResNet50(nn.Module):
                 nn.ReLU(),
                 nn.Linear(1024,512),
                 nn.ReLU(),
-                nn.Linear(512,num_classes),
-                nn.Softmax()
+                nn.Linear(512,num_classes)
             )
 
 
@@ -201,7 +202,7 @@ class PH_ResNet50(nn.Module):
             stride=stride)] # Iintial block has downsampling
         for _ in range(num_blocks - 1):
             layers.append(PIBlock(
-                in_channels = in_channels,
+                in_channels = out_channels,
                 inter_channels = inter_channels,
                 out_channels = out_channels,
                 args=self.args))
