@@ -14,6 +14,7 @@ from dataProcessing.processing import process_data, PrecomputedDataset
 from utils import train_model, seed_all
 from models.PI_finetune import PIFineTuneModel
 from models.FineTuneResNet import ResNetFineTune
+from models.ReNet50_Topo import PH_ResNet50
 torch.autograd.set_detect_anomaly(False)
 
 if __name__ == '__main__':
@@ -49,12 +50,13 @@ if __name__ == '__main__':
     base_model = resnet50(weights = "IMAGENET1K_V2")
     if args.modelFT == 'PI_IMG': 
         model = PIFineTuneModel(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
-        model.to(device)
     elif args.modelFT == "ResNet50":
         model = ResNetFineTune(base_model = base_model, image_channels = 3, num_classes = 200, device= device, args= args)
-        model.to(device)
+    elif args.modelFT == "RN50_Scratch":
+        model = PH_ResNet50(image_channels= 3, num_classes= 200, args = args)
     else:
         raise Exception(f"Unrecognized modelFT argument: {args.modelFT}")
+    model.to(device)
     # model = torch.compile(model, mode="reduce-overhead")
     
     criterion = nn.CrossEntropyLoss()
@@ -64,13 +66,6 @@ if __name__ == '__main__':
 
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
 
-    # model, _ = train_model(model = model,
-    #                        dataloaders = {"train": train_loader, "val": val_loader}, 
-    #                        criterion = criterion,
-    #                        optimizer = optimizer,
-    #                        args = args,
-    #                        tensor_board_path = tensor_board_path)
-    # resume_path = './checkpoint.pth' 
     resume_path = None 
 
     model, _ = train_model(model = model,
