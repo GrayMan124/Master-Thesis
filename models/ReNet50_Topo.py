@@ -243,6 +243,8 @@ class PH_ResNet50(nn.Module):
         x = self.fc(x)
 
         return x
+    def unfreeze(self):
+        pass 
 
     def identity_downsample(self, in_channels, out_channels, stride):
 
