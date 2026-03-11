@@ -1,2 +1,7 @@
-# Master_Thesis
- Code used for Master Thesis project
+# Persistent Homology in robust image classification
+ Code used for Master Thesis project at Leiden University. 
+
+
+
+### Abstract:
+ *Image classification has been one of the most studied areas in machine learning in recent years. Most of the recently proposed research focuses on data augmentation and improving training algorithms, with adversarial training being a standard method used for improving robustness. On the other hand, we see promising results from a branch of topology that manages to capture geometrical features, difficult to measure using conventional methods. Persistent homology (PH) is one of the most promising tools from Topological Data Analysis that has been applied to image processing. However, the current research in this topic mostly focuses on simple or well-structured data, such as MNIST dataset or medical images. We propose a novel approach to improving image classification robustness that relies on adding topological information using persistent homology and test it on more complex and diverse datasets, using CIFAR-10 and CIFAR-10C, as well as against adversarial attacks. We explore several PH vectorisation methods to determine whether these features can improve robustness without using adversarial training, and which of these methods is the most suitable for image classification tasks. Our findings indicate that adding topological information from persistent homology slightly improves the robustness, compared to a baseline ResNet18 architecture.*
