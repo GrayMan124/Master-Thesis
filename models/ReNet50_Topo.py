@@ -130,8 +130,8 @@ class PIBlock(nn.Module):
         
         x += identity
         
-        aligned_t = nn.functional.interpolate(identity_t, size=(x.shape[2],x.shape[3]),mode='bilinear',align_corners=False)
-        x += aligned_t 
+        # aligned_t = nn.functional.interpolate(identity_t, size=(x.shape[2],x.shape[3]),mode='bilinear',align_corners=False)
+        x += topo 
 
         x = self.relu(x)
         if self.args.tb_add_t:
@@ -158,7 +158,7 @@ class PH_ResNet50(nn.Module):
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU()
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding = 1)
-
+        self.maxpool_t = nn.MaxPool2d(kernel_size=3, stride=2, padding = 1)
         #resnet layers
         self.layer1 = self.__make_layer(in_channels = 64, inter_channels = 64, out_channels = 256, stride=1, num_blocks= 3 )
         self.layer2 = self.__make_layer(in_channels = 256, inter_channels = 128, out_channels = 512, stride=2, num_blocks= 4 )
@@ -228,6 +228,7 @@ class PH_ResNet50(nn.Module):
         # x = transforms.functional.resize(x, (112, 112))
         x,topo = x 
         topo = self.topo_embed(topo)
+        topo = self.maxpool_t(topo)
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
