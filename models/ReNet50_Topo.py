@@ -169,25 +169,33 @@ class PH_ResNet50(nn.Module):
         # self.fc = nn.Linear(2048, args.hidden_size)
         self.avgpool_t = nn.AdaptiveAvgPool2d((1, 1))
         
+        # self.res_net_fc = nn.Sequential(
+        #         nn.Linear(2048, 1024),
+        #         nn.ReLU(),
+        #         nn.Linear(1024,args.hidden_size),
+        #         nn.ReLU()
+        #     )
+
         self.res_net_fc = nn.Sequential(
-                nn.Linear(2048, 1024),
-                nn.ReLU(),
-                nn.Linear(1024,args.hidden_size),
+                nn.Linear(2048, args.hidden_size),
                 nn.ReLU()
             )
-
         self.res_net_fc_topo = nn.Sequential(
                 nn.Linear(2048, args.hidden_size),
                 nn.ReLU()
             )
        
-        self.fc = nn.Sequential(nn.Linear(args.hidden_size * 2 ,1024),
-                nn.ReLU(),
-                nn.Linear(1024,512),
+        # self.fc = nn.Sequential(nn.Linear(args.hidden_size * 2 ,1024),
+        #         nn.ReLU(),
+        #         nn.Linear(1024,512),
+        #         nn.ReLU(),
+        #         nn.Linear(512,num_classes)
+        #     )
+
+        self.fc = nn.Sequential(nn.Linear(args.hidden_size * 2 ,512),
                 nn.ReLU(),
                 nn.Linear(512,num_classes)
             )
-
 
     def __make_layer(self, in_channels, inter_channels, out_channels, stride, num_blocks):
 
