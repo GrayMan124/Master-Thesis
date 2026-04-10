@@ -45,7 +45,7 @@ class TopoIMG_transModel(
                     out_channels=64,
                     kernel_size=7,
                     stride=2,
-                    padding=1,
+                    padding=3,
                 ),
                 nn.BatchNorm2d(64),
                 nn.ReLU(),
