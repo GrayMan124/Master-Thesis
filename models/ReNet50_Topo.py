@@ -42,27 +42,12 @@ class TopoIMG_transModel(
             self.conv_network = nn.Sequential(
                 nn.Conv2d(
                     in_channels=in_ch,
-                    out_channels=16,
-                    kernel_size=(5, 5),
+                    out_channels=64,
+                    kernel_size=7,
                     stride=2,
                     padding=1,
                 ),
-                nn.ReLU(),
-                nn.Conv2d(
-                    in_channels=16,
-                    out_channels=32,
-                    kernel_size=(4, 4),
-                    stride=1,
-                    padding=1,
-                ),
-                nn.ReLU(),
-                nn.Conv2d(
-                    in_channels=32,
-                    out_channels=64,
-                    kernel_size=(5, 5),
-                    stride=1,
-                    padding=1,
-                ),
+                nn.BatchNorm2d(64),
                 nn.ReLU(),
             )
 
@@ -70,27 +55,21 @@ class TopoIMG_transModel(
             self.conv_network = nn.Sequential(
                 nn.Conv2d(
                     in_channels=in_ch,
-                    out_channels=28,
-                    kernel_size=(5, 5),
+                    out_channels=32,
+                    kernel_size=3,
+                    stride=1,
+                    padding=1,
+                ),
+                nn.BatchNorm2d(32),
+                nn.ReLU(),
+                nn.Conv2d(
+                    in_channels=32,
+                    out_channels=64,
+                    kernel_size=3,
                     stride=2,
                     padding=1,
                 ),
-                nn.ReLU(),
-                nn.Conv2d(
-                    in_channels=28,
-                    out_channels=48,
-                    kernel_size=(4, 4),
-                    stride=1,
-                    padding=1,
-                ),
-                nn.ReLU(),
-                nn.Conv2d(
-                    in_channels=48,
-                    out_channels=64,
-                    kernel_size=(5, 5),
-                    stride=1,
-                    padding=1,
-                ),
+                nn.BatchNorm2d(64),
                 nn.ReLU(),
             )
 
@@ -99,34 +78,29 @@ class TopoIMG_transModel(
                 nn.Conv2d(
                     in_channels=in_ch,
                     out_channels=32,
-                    kernel_size=(5, 5),
-                    stride=2,
+                    kernel_size=3,
+                    stride=1,
                     padding=1,
                 ),
+                nn.BatchNorm2d(32),
                 nn.ReLU(),
                 nn.Conv2d(
                     in_channels=32,
                     out_channels=48,
-                    kernel_size=(4, 4),
+                    kernel_size=3,
                     stride=1,
                     padding=1,
                 ),
+                nn.BatchNorm2d(48),
                 nn.ReLU(),
                 nn.Conv2d(
                     in_channels=48,
                     out_channels=64,
-                    kernel_size=(4, 4),
-                    stride=1,
+                    kernel_size=3,
+                    stride=2,
                     padding=1,
                 ),
-                nn.ReLU(),
-                nn.Conv2d(
-                    in_channels=64,
-                    out_channels=64,
-                    kernel_size=(4, 4),
-                    stride=1,
-                    padding=1,
-                ),
+                nn.BatchNorm2d(64),
                 nn.ReLU(),
             )
 
