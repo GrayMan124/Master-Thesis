@@ -327,6 +327,9 @@ class PH_ResNet50(nn.Module):
         x, topo = x
         topo = self.topo_embed(topo)
         topo = self.maxpool_t(topo)
+        topo = nn.functional.interpolate(
+            topo, size=(x.shape[2], x.shape[3]), mode="bilnear", align_corners=False
+        )
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
