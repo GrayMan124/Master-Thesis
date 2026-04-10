@@ -86,8 +86,7 @@ if __name__ == "__main__":
     else:
         raise Exception(f"Unrecognized modelFT argument: {args.modelFT}")
     model.to(device)
-    # model = torch.compile(model, mode="reduce-overhead")
-    # NOTE: For some reason akira still compiles the kernels
+    model = torch.compile(model, mode="reduce-overhead")
     count_parameters(model)
     criterion = nn.CrossEntropyLoss()
     active_params = [p for p in model.parameters() if p.requires_grad]
