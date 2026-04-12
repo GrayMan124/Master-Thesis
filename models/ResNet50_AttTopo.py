@@ -1,5 +1,4 @@
 import os
-from models.ResNet50 import hidden_size
 import torch
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
