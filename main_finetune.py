@@ -16,6 +16,7 @@ from utils import train_model, seed_all, count_parameters
 from models.PI_finetune import PIFineTuneModel
 from models.FineTuneResNet import ResNetFineTune
 from models.ReNet50_Topo import PH_ResNet50
+from models.ResNet50_AttTopo import ResNet_AttnTopo
 
 torch.autograd.set_detect_anomaly(False)
 
@@ -83,6 +84,8 @@ if __name__ == "__main__":
         )
     elif args.modelFT == "RN50_S":
         model = PH_ResNet50(image_channels=3, num_classes=200, args=args)
+    elif args.modelFT == "RN50_Atn":
+        model = ResNet_AttnTopo(image_channels=3, num_classes=200, args=args)
     else:
         raise Exception(f"Unrecognized modelFT argument: {args.modelFT}")
     model.to(device)
