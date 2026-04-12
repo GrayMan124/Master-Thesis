@@ -155,7 +155,7 @@ class ResNet_AttnTopo(nn.Module):
             patch_size=8,
             in_channels=2 if args.topodim_concat else 1,
             num_heads=4,
-            depth=3,
+            depth=2,
             dropout=0.2,
         )
 
