@@ -98,7 +98,12 @@ if __name__ == "__main__":
         active_params, lr=args.lr, weight_decay=1e-4, fused=True, eps=1e-4
     )
 
-    lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
+    optimizer = optim.Adam(
+        active_params, lr=args.lr, weight_decay=1e-4, fused=True, eps=1e-4
+    )
+
+    # lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
+    lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
 
     resume_path = None
 
@@ -107,6 +112,8 @@ if __name__ == "__main__":
         dataloaders={"train": train_loader, "val": val_loader},
         criterion=criterion,
         args=args,
+        optimizer=optimizer,
+        lr_scheduler=lr_scheduler,
         resume_path=resume_path,
     )
     if args.sm:
