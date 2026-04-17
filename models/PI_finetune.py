@@ -1,7 +1,7 @@
 import os
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
-from models.ResNet import hidden_size
+# from models.ResNet import hidden_size
 import torch
 import torch.nn as nn
 import json
