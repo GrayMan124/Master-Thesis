@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import json
 
-from ResNet50_AttTopo import TopoAttentionEncoder
+from .ResNet50_AttTopo import TopoAttentionEncoder
 
 
 def layer_from_config(layer_config):
