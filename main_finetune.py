@@ -105,7 +105,8 @@ if __name__ == "__main__":
                 {"params": backbone_params, "lr": 3e-6, "weight_decay": 0.01},
             ]
         )
-    except:
+    except Exception as e:
+        print(f"failed to retrieve topo and backbone paramters with error {e}")
         active_params = [p for p in model.parameters() if p.requires_grad]
     # lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
     lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
