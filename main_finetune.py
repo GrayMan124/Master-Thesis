@@ -111,7 +111,6 @@ if __name__ == "__main__":
 
     # lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
     lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
-    raise Exception("Testing")
     resume_path = None
 
     model, _ = train_model(
