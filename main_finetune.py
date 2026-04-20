@@ -93,9 +93,6 @@ if __name__ == "__main__":
     count_parameters(model)
     criterion = nn.CrossEntropyLoss()
     # optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4, fused=True, eps=1e-4)
-    optimizer = optim.Adam(
-        active_params, lr=args.lr, weight_decay=1e-4, fused=True, eps=1e-4
-    )
     try:
         backbone_params, topo_params = model.get_params()
         print("Using AdamW optimizer")
@@ -108,6 +105,10 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"failed to retrieve topo and backbone paramters with error {e}")
         active_params = [p for p in model.parameters() if p.requires_grad]
+        optimizer = optim.Adam(
+            active_params, lr=args.lr, weight_decay=1e-4, fused=True, eps=1e-4
+        )
+
     # lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
     lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
     raise Exception("Testing")
