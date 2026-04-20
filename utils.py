@@ -309,7 +309,7 @@ def train_model(
             if new_params:
                 # backbone_lr = args.lr * 0.1  # 10x smaller than the main LR
                 # optimizer.add_param_group({'params': new_params, 'lr': backbone_lr})
-                optimizer.add_param_group({"params": new_params, "lr": args.lr})
+                optimizer.add_param_group({"params": new_params, "lr": 3e-5})
                 print(
                     f"Added {len(new_params)} newly unfrozen parameter tensors to the optimizer with LR {args.lr}."
                 )

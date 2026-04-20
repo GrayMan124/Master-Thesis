@@ -2,6 +2,7 @@ import os
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 # from models.ResNet import hidden_size
+# from main_finetune import backbone_params
 import torch
 import torch.nn as nn
 import json
@@ -167,6 +168,17 @@ class PIFineTuneModel(nn.Module):
                 nn.ReLU(inplace=True),
                 nn.Linear(args.hidden_size, num_classes),
             )
+
+    # def get_params(self):
+    #     backbone_params = [p for p in self.base_model.parameters()]
+    #     topo_params = [p for p in self.topo_net.parameters()]
+    #     for par in self.fc.parameters():
+    #         topo_params.append(par)
+    #     return backbone_params, topo_params
+    def get_params(self):
+        backbone_params = [p for p in self.base_model.parameters() if p.requires_grad]
+        topo_params = list(self.topo_net.parameters()) + list(self.fc.parameters())
+        return backbone_params, topo_params
 
     def unfreeze(self):
         if self.args.freeze_weights:

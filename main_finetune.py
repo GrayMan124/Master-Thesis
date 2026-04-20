@@ -92,19 +92,24 @@ if __name__ == "__main__":
     model = torch.compile(model, mode="reduce-overhead")
     count_parameters(model)
     criterion = nn.CrossEntropyLoss()
-    active_params = [p for p in model.parameters() if p.requires_grad]
     # optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4, fused=True, eps=1e-4)
     optimizer = optim.Adam(
         active_params, lr=args.lr, weight_decay=1e-4, fused=True, eps=1e-4
     )
-
-    optimizer = optim.Adam(
-        active_params, lr=args.lr, weight_decay=1e-4, fused=True, eps=1e-4
-    )
-
+    try:
+        backbone_params, topo_params = model.get_params()
+        print("Using AdamW optimizer")
+        optimizer = optim.AdamW(
+            [
+                {"params": topo_params, "lr": 3e-4, "weight_decay": 0.05},
+                {"params": backbone_params, "lr": 3e-6, "weight_decay": 0.01},
+            ]
+        )
+    except:
+        active_params = [p for p in model.parameters() if p.requires_grad]
     # lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5)
     lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
-
+    raise Exception("Testing")
     resume_path = None
 
     model, _ = train_model(
