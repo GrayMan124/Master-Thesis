@@ -98,8 +98,8 @@ if __name__ == "__main__":
         print("Using AdamW optimizer")
         optimizer = optim.AdamW(
             [
-                {"params": topo_params, "lr": 3e-4, "weight_decay": 0.05},
-                {"params": backbone_params, "lr": 3e-6, "weight_decay": 0.01},
+                {"params": topo_params, "lr": args.lr, "weight_decay": 0.05},
+                {"params": backbone_params, "lr": args.lr_b, "weight_decay": 0.01},
             ]
         )
     except Exception as e:

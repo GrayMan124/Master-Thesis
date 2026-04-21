@@ -10,6 +10,16 @@ import json
 from .ResNet50_AttTopo import TopoAttentionEncoder
 
 
+class GatedFusion(nn.Module):
+    def __init__(self, hidden_size):
+        super().__init__()
+        self.gate = nn.Parameter(torch.tensor(0.5))
+
+    def forward(self, img_feat, topo_feat):
+        g = torch.sigmoid(self.gate)
+        return torch.cat([g * img_feat, (1 - g) * topo_feat], dim=1)
+
+
 def layer_from_config(layer_config):
     layer_type = layer_config["type"]
     params = {k: v for k, v in layer_config.items() if k != "type"}
@@ -168,16 +178,16 @@ class PIFineTuneModel(nn.Module):
                 nn.ReLU(inplace=True),
                 nn.Linear(args.hidden_size, num_classes),
             )
+        if args.fg:
+            self.fusion = GatedFusion(args.hidden_size)
+        else:
+            self.fusion = None
 
-    # def get_params(self):
-    #     backbone_params = [p for p in self.base_model.parameters()]
-    #     topo_params = [p for p in self.topo_net.parameters()]
-    #     for par in self.fc.parameters():
-    #         topo_params.append(par)
-    #     return backbone_params, topo_params
     def get_params(self):
         backbone_params = [p for p in self.base_model.parameters() if p.requires_grad]
         topo_params = list(self.topo_net.parameters()) + list(self.fc.parameters())
+        if self.fusion:
+            topo_params += list(self.fusion.parameters())
         return backbone_params, topo_params
 
     def unfreeze(self):
@@ -194,7 +204,10 @@ class PIFineTuneModel(nn.Module):
         x = self.base_model(x)
         x_2 = self.topo_net(topo)
         x_2 = x_2.squeeze(1)
-        x = torch.cat([x, x_2], dim=1)
+        if self.fusion:
+            x = self.fusion(x, x_2)
+        else:
+            x = torch.cat([x, x_2], dim=1)
         x = self.fc(x)
         return x
 

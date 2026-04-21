@@ -34,6 +34,12 @@ argparser.add_argument(
     type=float,
     help="Meta-learning rate (used on query set - potentially acoss tasks)",
 )
+argparser.add_argument(
+    "--lr_b",
+    default=0.00003,
+    type=float,
+    help="Learning rate for the backbone model (used onlt in finetuning)",
+)
 argparser.add_argument("--seed", default=119, type=int, help="Seed to use")
 argparser.add_argument(
     "--model",
@@ -154,6 +160,12 @@ argparser.add_argument(
     default=False,
     action="store_true",
     help="Use attention as the topological embedidng in fine-tuning",
+)
+argparser.add_argument(
+    "--fg",
+    default=False,
+    action="store_true",
+    help="Fusion Gate",
 )
 
 args = argparser.parse_args()
