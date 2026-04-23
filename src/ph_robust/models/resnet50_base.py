@@ -1,60 +1,36 @@
-import os
-
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
-import torchvision.transforms as transforms
 import torch.nn as nn
-import json
-from config import args
-
-
-def layer_from_config(layer_config):
-    layer_type = layer_config["type"]
-    params = {k: v for k, v in layer_config.items() if k != "type"}
-
-    # Dynamically instantiate the layer
-    if hasattr(nn, layer_type):
-        return getattr(nn, layer_type)(**params)
-    else:
-        raise ValueError(f"Layer type {layer_type} is not supported.")
-
-
-if args.config:
-    with open(args.config, "r") as f:
-        config = json.load(f)
-    hidden_size = config["hidden_size"]
-else:
-    hidden_size = 128
+from .blocks import Block
 
 
 # Base ResNet-50
-class ResNet_50(nn.Module):
+class ResNet50(nn.Module):
     def __init__(self, image_channels, num_classes):
 
-        super(ResNet_50, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU()
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
         # resnet layers
-        self.layer1 = self.__make_layer(
+        self.layer1 = self._make_layer(
             in_channels=64, inter_channels=64, out_channels=256, stride=1, num_blocks=3
         )
-        self.layer2 = self.__make_layer(
+        self.layer2 = self._make_layer(
             in_channels=256,
             inter_channels=128,
             out_channels=512,
             stride=2,
             num_blocks=4,
         )
-        self.layer3 = self.__make_layer(
+        self.layer3 = self._make_layer(
             in_channels=512,
             inter_channels=256,
             out_channels=1024,
             stride=2,
             num_blocks=6,
         )
-        self.layer4 = self.__make_layer(
+        self.layer4 = self._make_layer(
             in_channels=1024,
             inter_channels=512,
             out_channels=2048,
@@ -65,7 +41,7 @@ class ResNet_50(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(2048, num_classes)
 
-    def __make_layer(
+    def _make_layer(
         self, in_channels, inter_channels, out_channels, stride, num_blocks
     ):
 
@@ -84,7 +60,7 @@ class ResNet_50(nn.Module):
                 stride=stride,
             )
         ]  # Iintial block has downsampling
-        for i in range(num_blocks - 1):
+        for _ in range(num_blocks - 1):
             layers.append(
                 Block(
                     in_channels=out_channels,
@@ -119,6 +95,5 @@ class ResNet_50(nn.Module):
             nn.Conv2d(
                 in_channels, out_channels, kernel_size=1, stride=stride, padding=0
             ),
-            # nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=2),# padding=1),
             nn.BatchNorm2d(out_channels),
         )

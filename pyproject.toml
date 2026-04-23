@@ -1,4 +1,6 @@
 [tool.basedpyright]
+venvPath = "/home/gray/miniforge3/envs"
+venv = "pi-img"
 typeCheckingMode = "standard"
 reportUnknownMemberType = "none"
 reportUnknownVariableType = "none"
