@@ -1,3 +1,6 @@
+import torch.nn as nn
+
+
 # Residual block for ResNet50
 class Block(nn.Module):
     def __init__(
@@ -36,7 +39,6 @@ class Block(nn.Module):
         x = self.bn3(x)
         if self.identity_downsample is not None:
             identity = self.identity_downsample(identity)
-        print(f"x shape: {x.shape}\nidentitity shape: {identity.shape}")
         x += identity
         x = self.relu(x)
         return x
@@ -45,7 +47,7 @@ class Block(nn.Module):
 # Residual block
 class Block_Topo(nn.Module):
     def __init__(self, in_channels, out_channels, identity_downsample=None, stride=1):
-        super(Block, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(
             in_channels, out_channels, kernel_size=3, stride=stride, padding=1
         )

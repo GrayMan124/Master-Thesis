@@ -1,28 +1,14 @@
-import os
 import torch
 
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
-import torchvision.transforms as transforms
 import torch.nn as nn
-import json
-
-
-def layer_from_config(layer_config):
-    layer_type = layer_config["type"]
-    params = {k: v for k, v in layer_config.items() if k != "type"}
-
-    # Dynamically instantiate the layer
-    if hasattr(nn, layer_type):
-        return getattr(nn, layer_type)(**params)
-    else:
-        raise ValueError(f"Layer type {layer_type} is not supported.")
+from topo_blocks import PIBlock
 
 
 class TupleSequential(nn.Sequential):
-    def forward(self, x):
+    def forward(self, input):
         for module in self:
-            x = module(x)
-        return x
+            input = module(input)
+        return input
 
 
 class TopoIMG_transModel(
@@ -111,7 +97,7 @@ class TopoIMG_transModel(
 class PH_ResNet50(nn.Module):
     def __init__(self, image_channels, num_classes, args):
 
-        super(PH_ResNet50, self).__init__()
+        super().__init__()
         self.args = args
         self.topo_embed = TopoIMG_transModel(args=self.args)
         self.conv1 = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
@@ -146,27 +132,12 @@ class PH_ResNet50(nn.Module):
         )
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        # self.fc = nn.Linear(2048, args.hidden_size)
         self.avgpool_t = nn.AdaptiveAvgPool2d((1, 1))
-
-        # self.res_net_fc = nn.Sequential(
-        #         nn.Linear(2048, 1024),
-        #         nn.ReLU(),
-        #         nn.Linear(1024,args.hidden_size),
-        #         nn.ReLU()
-        #     )
 
         self.res_net_fc = nn.Sequential(nn.Linear(2048, args.hidden_size), nn.ReLU())
         self.res_net_fc_topo = nn.Sequential(
             nn.Linear(2048, args.hidden_size), nn.ReLU()
         )
-
-        # self.fc = nn.Sequential(nn.Linear(args.hidden_size * 2 ,1024),
-        #         nn.ReLU(),
-        #         nn.Linear(1024,512),
-        #         nn.ReLU(),
-        #         nn.Linear(512,num_classes)
-        #     )
 
         self.fc = nn.Sequential(
             nn.Linear(args.hidden_size * 2, 512), nn.ReLU(), nn.Linear(512, num_classes)
@@ -252,7 +223,6 @@ class PH_ResNet50(nn.Module):
             nn.Conv2d(
                 in_channels, out_channels, kernel_size=1, stride=stride, padding=0
             ),
-            # nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=2),# padding=1),
             nn.BatchNorm2d(out_channels),
         )
 
