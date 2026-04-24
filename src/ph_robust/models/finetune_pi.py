@@ -1,31 +1,9 @@
-import os
-
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 import torch
 import torch.nn as nn
-import json
 
-from .ResNet50_AttTopo import TopoAttentionEncoder
-
-
-class GatedFusion(nn.Module):
-    def __init__(self, hidden_size):
-        super().__init__()
-        self.gate = nn.Parameter(torch.tensor(0.5))
-
-    def forward(self, img_feat, topo_feat):
-        g = torch.sigmoid(self.gate)
-        return torch.cat([g * img_feat, (1 - g) * topo_feat], dim=1)
-
-
-def layer_from_config(layer_config):
-    layer_type = layer_config["type"]
-    params = {k: v for k, v in layer_config.items() if k != "type"}
-    # Dynamically instantiate the layer
-    if hasattr(nn, layer_type):
-        return getattr(nn, layer_type)(**params)
-    else:
-        raise ValueError(f"Layer type {layer_type} is not supported.")
+from .resnet50_attn_topo import TopoAttentionEncoder
+from registry import GatedFusion
+from .blocks import BlockSmall
 
 
 class TopoIMG_ResNet(
@@ -33,7 +11,7 @@ class TopoIMG_ResNet(
 ):  # this is based on the resnet implementation on ResNet (using ResNet as the base to process the images)
     def __init__(self, image_channels, hidden_size, args):
 
-        super(TopoIMG_ResNet, self).__init__()
+        super().__init__()
         self.in_channels = 64
         self.conv1 = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
         self.bn1 = nn.BatchNorm2d(64)
@@ -75,13 +53,13 @@ class TopoIMG_ResNet(
             identity_downsample = self.identity_downsample(in_channels, out_channels)
 
         return nn.Sequential(
-            Block(
+            BlockSmall(
                 in_channels,
                 out_channels,
                 identity_downsample=identity_downsample,
                 stride=stride,
             ),
-            Block(out_channels, out_channels),
+            BlockSmall(out_channels, out_channels),
         )
 
     def forward(self, x):
@@ -106,11 +84,11 @@ class TopoIMG_ResNet(
         )
 
 
-# Resnet with Topological features as topological images (in the IMG form)
+# Resnet with Topological features as topological images (in the IMG form) used for fine tuning
 class PIFineTuneModel(nn.Module):
     def __init__(self, base_model, image_channels, num_classes, device, args):
 
-        super(PIFineTuneModel, self).__init__()
+        super().__init__()
         self.device = device
 
         self.base_model = base_model
@@ -136,17 +114,17 @@ class PIFineTuneModel(nn.Module):
             )
         else:
             self.topo_net = TopoIMG_ResNet(in_channels, args.hidden_size, args=args)
-        if args.config:
-            layers = [
-                layer_from_config(layer_config) for layer_config in args.config["fc"]
-            ]
-            self.fc = nn.Sequential(*layers)
-        else:
-            self.fc = nn.Sequential(
-                nn.Linear(args.hidden_size * 2, args.hidden_size),
-                nn.ReLU(inplace=True),
-                nn.Linear(args.hidden_size, num_classes),
-            )
+        # if args.config:
+        #     layers = [
+        #         layer_from_config(layer_config) for layer_config in args.config["fc"]
+        #     ]
+        #     self.fc = nn.Sequential(*layers)
+        # else:
+        self.fc = nn.Sequential(
+            nn.Linear(args.hidden_size * 2, args.hidden_size),
+            nn.ReLU(inplace=True),
+            nn.Linear(args.hidden_size, num_classes),
+        )
         if args.fg:
             self.fusion = GatedFusion(args.hidden_size)
         else:

@@ -1,13 +1,7 @@
-import os
-
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
-import torch
 import torch.nn as nn
-from torch.utils.tensorboard import SummaryWriter
-import json
 
 
-# Resnet with Topological features as topological images (in the IMG form)
+# BasicResNet50 finetune (base model, no topological features)
 class ResNetFineTune(nn.Module):
     def __init__(self, base_model, image_channels, num_classes, device, args):
         super(ResNetFineTune, self).__init__()
@@ -22,26 +16,13 @@ class ResNetFineTune(nn.Module):
                 param.requires_grad = False
 
         num_features = self.base_model.fc.in_features
+
         self.base_model.fc = nn.Linear(num_features, args.hidden_size)
-
-        if args.config:  # if the config was set
-            raise ("This part is not yet inplemented in the config - TopoPI")
-            layers = [
-                layer_from_config(layer_config) for layer_config in config["topo_net"]
-            ]
-            self.topo_net = nn.Sequential(*layers)
-
-        if args.config:
-            layers = [
-                layer_from_config(layer_config) for layer_config in args.config["fc"]
-            ]
-            self.fc = nn.Sequential(*layers)
-        else:
-            self.fc = nn.Sequential(
-                nn.Linear(args.hidden_size, args.hidden_size),
-                nn.ReLU(),
-                nn.Linear(args.hidden_size, num_classes),
-            )
+        self.fc = nn.Sequential(
+            nn.Linear(args.hidden_size, args.hidden_size),
+            nn.ReLU(),
+            nn.Linear(args.hidden_size, num_classes),
+        )
 
     def forward(self, x):
 
