@@ -9,7 +9,7 @@ import copy
 from torch.amp.grad_scaler import GradScaler
 from torch.amp.autocast_mode import autocast
 
-from checkpoint import load_checkpoint, save_checkpoint
+from .checkpoint import load_checkpoint, save_checkpoint
 
 
 def train_model(

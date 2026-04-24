@@ -1,7 +1,6 @@
 # Update, version from: 22-12-2025
 import os
 
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn

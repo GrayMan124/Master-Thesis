@@ -9,7 +9,7 @@ from torchvision.models import resnet50
 from torchvision import transforms
 from datasets import load_dataset
 
-from config.config import args
+# from config.config import args #TODO: Change this to hydra
 from dataProcessing.processing import PrecomputedDataset, process_test
 from utils import test_model, seed_all
 from models.PI_finetune import PIFineTuneModel
