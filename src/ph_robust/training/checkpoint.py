@@ -1,3 +1,7 @@
+import os
+import torch
+
+
 def save_checkpoint(
     model, optimizer, scheduler, epoch, loss, file_name="checkpoint.pth"
 ):

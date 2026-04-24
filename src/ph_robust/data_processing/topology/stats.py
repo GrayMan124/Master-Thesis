@@ -1,10 +1,5 @@
 import torch
-from torchvision import transforms
-from torch.utils.data import DataLoader, Subset
-import numpy as np
-import cv2
-import gudhi as gd
-import gudhi.representations
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 import json
 
@@ -17,10 +12,10 @@ def calculate_dataset_stats(dataset_loader):
     cnt = 0
     fst_moment = torch.empty(3)  # Placeholder
     snd_moment = torch.empty(3)
-    max_t = 0
+    # max_t = 0
 
     # We only need to check the first batch to get channel count
-    for i, (images, topo_features) in enumerate(tqdm(dataset_loader)):
+    for i, (_, topo_features) in enumerate(tqdm(dataset_loader)):
         # topo_features shape: (Batch, Channels, H, W)
         b, c, h, w = topo_features.shape
         nb_pixels = b * h * w
@@ -60,7 +55,7 @@ def calculate_accurate_stats_two_pass(dataset):
     n_channels = None
     max_t = 0
     # PASS 1: Mean
-    for i, (images, topo_features) in enumerate(tqdm(loader)):
+    for _, (_, topo_features) in enumerate(tqdm(loader)):
         # topo_features: (B, C, H, W)
         if n_channels is None:
             n_channels = topo_features.shape[1]
@@ -85,7 +80,7 @@ def calculate_accurate_stats_two_pass(dataset):
     print("--- [Pass 2/2] Calculating Global Std ---")
     sum_squared_diff = torch.zeros(n_channels, dtype=torch.float64)
 
-    for i, (images, topo_features) in enumerate(tqdm(loader)):
+    for _, (_, topo_features) in enumerate(tqdm(loader)):
         topo_features = topo_features.double()
         # Reshape mean for broadcasting: (1, C, 1, 1)
         mean_view = global_mean.view(1, n_channels, 1, 1)

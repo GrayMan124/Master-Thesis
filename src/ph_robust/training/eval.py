@@ -1,3 +1,7 @@
+import torch
+from tqdm import tqdm
+
+
 def accuracy_test(output, target, topk=(1, 5)):
     with torch.inference_mode():
         maxk = max(topk)
@@ -16,7 +20,7 @@ def accuracy_test(output, target, topk=(1, 5)):
 
 
 @torch.inference_mode()
-def test_model(model, dataloader, criterion):
+def test_model(model, dataloader, criterion, args):
     print("Testing model")
     model.eval()
     running_loss = 0.0

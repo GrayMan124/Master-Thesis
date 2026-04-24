@@ -8,9 +8,11 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision.models import resnet50
 from torchvision import transforms
-from datasets import load_dataset
+from datasets import load_dataset  # from huggingface
 
-from config.config import args
+from config.config import args  # TODO: replace with hydra somehow
+
+
 from dataProcessing.processing import process_data, PrecomputedDataset
 from utils import train_model, seed_all, count_parameters
 from models.PI_finetune import PIFineTuneModel
