@@ -1,5 +1,49 @@
+from uu import Error
 import torch.nn as nn
 import torch
+from torchvision.models import resnet50
+
+from .finetune_pi import PIFineTuneModel
+from .finetune_resnet import ResNetFineTune
+from .ph_resnet50 import PH_ResNet50
+from .resnet50_attn_topo import ResNet_AttnTopo
+
+_REGISTRY = {
+    "PI_IMG": lambda cfg, device: PIFineTuneModel(
+        base_model=resnet50(weights="IMAGENET1K_V2"),
+        image_channels=3,
+        num_classes=cfg.data.num_classes,
+        device=device,
+        args=cfg,
+    ),
+    "ResNet50": lambda cfg, device: ResNetFineTune(
+        base_model=resnet50(weights="IMAGENET1K_V2"),
+        image_channels=3,
+        num_classes=cfg.data.num_classes,
+        device=device,
+        args=cfg,
+    ),
+    "RN50_S": lambda cfg, device: PH_ResNet50(
+        image_channels=3,
+        num_classes=cfg.data.num_classes,
+        args=cfg,
+    ),
+    "RN50_Atn": lambda cfg, device: ResNet_AttnTopo(
+        image_channels=3,
+        num_classes=cfg.data.num_classes,
+        args=cfg,
+    ),
+}
+
+
+def build_model(cfg, device):
+    if cfg.model.kind not in _REGISTRY:
+        raise Error(f"Uknown model {cfg.model.kind}")
+    model = _REGISTRY[cfg.model.kind](cfg, device)
+    model.to(device)
+    if cfg.train.compile:
+        model = torch.compile(model)
+    return model
 
 
 def layer_from_config(layer_config):
