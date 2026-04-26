@@ -1,0 +1,8 @@
+kind: RN50_S
+hidden_size: 256
+freeze_weights: false
+tbs: normal                   
+tb_add_x: false
+tb_add_t: false
+ft_attn: false
+fg: false

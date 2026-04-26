@@ -98,15 +98,11 @@ def train_model(
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
             epoch_acc = running_corrects / len(dataloaders[phase].dataset)
 
-            # refactor this
             wandb_metrics[f"{phase}/Loss"] = epoch_loss
             wandb_metrics[f"{phase}/Acc"] = epoch_acc
 
-            # This should be outside the phase loop monka Hmm
-
             print("{} Loss: {:.4f} Acc: {:.4f}".format(phase, epoch_loss, epoch_acc))
 
-            # Deep copy the model if it's the best
             if phase == "val" and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_loss = epoch_loss  # Capture best loss too
@@ -138,8 +134,6 @@ def train_model(
                 if p.requires_grad and p not in existing_params
             ]
             if new_params:
-                # backbone_lr = args.lr * 0.1  # 10x smaller than the main LR
-                # optimizer.add_param_group({'params': new_params, 'lr': backbone_lr})
                 optimizer.add_param_group({"params": new_params, "lr": 3e-5})
                 print(
                     f"Added {len(new_params)} newly unfrozen parameter tensors to the optimizer with LR {args.lr}."
