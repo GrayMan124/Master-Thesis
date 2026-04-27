@@ -53,3 +53,7 @@ def main(cfg: DictConfig) -> None:
     if cfg.train.save_model:
         print("savingModel")
         torch.save(model.state_dict(), f"./saveModels/{cfg.run_name}.pkl")
+
+
+if __name__ == "__main__":
+    main()
