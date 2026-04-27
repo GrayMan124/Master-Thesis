@@ -1,7 +1,7 @@
 import torch
 
 import torch.nn as nn
-from topo_blocks import PIBlock
+from .topo_blocks import PIBlock
 
 
 class TupleSequential(nn.Sequential):

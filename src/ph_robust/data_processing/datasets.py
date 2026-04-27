@@ -1,6 +1,39 @@
 from torchvision import transforms
 import numpy as np
-from topology.pi import process_PI
+import torch
+from pathlib import Path
+from .topology.pi import process_PI
+
+
+class PrecomputedDataset(torch.utils.data.Dataset):
+    def __init__(self, data_dir, version_folders=None, transform=None):
+        """
+        data_dir: Path to 'data_cache'
+        version_folders: List of subfolders to include.
+                         For training: ['train_v0', 'train_v1', ...]
+                         For val: ['val']
+        """
+        self.version_folders = version_folders
+        self.data_dir = Path(data_dir)
+        self.files = []
+        self.transform = transform
+        first_folder = self.data_dir / version_folders[0]
+        self.file_names = [p.name for p in first_folder.glob("*.pt")]
+
+    def __len__(self):
+        return len(self.file_names)
+
+    def __getitem__(self, idx):
+        filename = self.file_names[idx]
+
+        selected_version = np.random.choice(self.version_folders)
+        full_path = self.data_dir / selected_version / filename
+        img_tensor, topo, label = torch.load(full_path)
+
+        if self.transform:
+            img_tensor = self.transform(img_tensor)
+
+        return (img_tensor, topo), label
 
 
 class AugmentAndCalculateFeatures:

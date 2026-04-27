@@ -1,7 +1,8 @@
-# Update, version from: 22-12-2025
+# Update, version from: 27-04-2026
 import torch
 import hydra
 from omegaconf import DictConfig, OmegaConf
+from hydra.core.config_store import ConfigStore
 import torch.nn as nn
 
 
@@ -9,10 +10,15 @@ from ph_robust.data_processing.loaders import build_dataloaders
 from ph_robust.models.registry import build_model
 from ph_robust.training.optim import build_optimizer, build_scheduler
 from ph_robust.training.train import train_model
-from ph_robust.training.seed import seed_all, count_parameters
+from ph_robust.training.seed import seed_all
+from ph_robust.training.utils import count_parameters
+from ph_robust.conf.schema import Config
 
 
 torch.autograd.set_detect_anomaly(False)
+
+cs = ConfigStore.instance()
+cs.store(name="base_config", node=Config)
 
 
 @hydra.main(version_base=None, config_path="../conf", config_name="config")

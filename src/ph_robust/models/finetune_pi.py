@@ -2,8 +2,9 @@ import torch
 import torch.nn as nn
 
 from .resnet50_attn_topo import TopoAttentionEncoder
-from registry import GatedFusion
-from .blocks import BlockSmall
+
+# from .registry import GatedFusion
+from .blocks import BlockSmall, GatedFusion
 
 
 class TopoIMG_ResNet(

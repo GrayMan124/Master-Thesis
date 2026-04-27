@@ -1,0 +1,21 @@
+# conf/experiment/ft_attn.yaml
+# @package _global_
+defaults:
+  - override /model: RN50_Atn
+  - override /topo: pi
+  - override /data: tiny_imagenet
+  - override /optim: adamw
+
+run_name: PH_Attn_FT
+
+train:
+  epochs: 100 
+  batch_size: 64 
+
+model:
+  hidden_size: 512
+  tbs: normal 
+
+topo:
+  concat: false 
+  tbs: normal 
