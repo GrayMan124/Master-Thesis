@@ -10,16 +10,6 @@ import json
 from .ResNet50_AttTopo import TopoAttentionEncoder
 
 
-class GatedFusion(nn.Module):
-    def __init__(self, hidden_size):
-        super().__init__()
-        self.gate = nn.Parameter(torch.tensor(0.5))
-
-    def forward(self, img_feat, topo_feat):
-        g = torch.sigmoid(self.gate)
-        return torch.cat([g * img_feat, (1 - g) * topo_feat], dim=1)
-
-
 def layer_from_config(layer_config):
     layer_type = layer_config["type"]
     params = {k: v for k, v in layer_config.items() if k != "type"}
