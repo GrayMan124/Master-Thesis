@@ -7,13 +7,13 @@ class PIBlock(nn.Module):
         in_channels,
         inter_channels,
         out_channels,
-        args,
+        cfg,
         identity_downsample=None,
         identity_downsample_t=None,
         stride=1,
     ):
-        super(PIBlock, self).__init__()
-        self.args = args
+        super().__init__()
+        self.cfg = cfg
         # Base ResNet Block
         self.conv1 = nn.Conv2d(
             in_channels, inter_channels, kernel_size=1, stride=stride, padding=0
@@ -33,7 +33,7 @@ class PIBlock(nn.Module):
         self.identity_downsample_t = identity_downsample_t
 
         # Topo Section
-        if args.tbs == "small":
+        if cfg.model.tbs == "small":
             self.topo_net = nn.Sequential(
                 nn.Conv2d(
                     in_channels, out_channels, kernel_size=3, stride=stride, padding=1
@@ -42,7 +42,7 @@ class PIBlock(nn.Module):
                 nn.ReLU(),
             )
         elif (
-            args.tbs == "normal"
+            cfg.model.tbs == "normal"
         ):  # NOTE: Here we use a bottleneck design, since the channles are huge in ResNet50
             self.topo_net = nn.Sequential(
                 nn.Conv2d(in_channels, inter_channels, kernel_size=1, bias=False),
@@ -62,7 +62,7 @@ class PIBlock(nn.Module):
                 nn.BatchNorm2d(out_channels),
             )
 
-        elif args.tbs == "large":
+        elif cfg.model.tbs == "large":
             self.topo_net = nn.Sequential(
                 nn.Conv2d(
                     in_channels, out_channels, kernel_size=3, stride=stride, padding=1
@@ -100,11 +100,11 @@ class PIBlock(nn.Module):
         # aligned_t = nn.functional.interpolate(identity_t, size=(x.shape[2],x.shape[3]),mode='bilinear',align_corners=False)
         x += topo
 
-        if self.args.tb_add_t:
+        if self.cfg.topo.tb_add_t:
             topo += identity_t
 
         # Adding the
-        # if self.args.tb_add_x:
+        # if self.cfg.topo.tb_add_x:
         #     topo+=identity
 
         x = self.relu(x)

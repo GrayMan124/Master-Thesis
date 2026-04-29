@@ -9,6 +9,7 @@ from ph_robust.data_processing.datasets import PrecomputedDataset
 
 def build_dataloaders(cfg):
     data_path = cfg.data.path
+    print(f"Looking for data in :\n{data_path}")
     if cfg.topo.max_norm:
         data_path = data_path + "mn"
     versions = [f"train_v{i}" for i in range(cfg.data.num_versions)]
@@ -20,7 +21,7 @@ def build_dataloaders(cfg):
             data_set=ds,
             data_path=data_path,
             num_versions=cfg.data.num_versions,
-            args=cfg,
+            cfg=cfg,
         )
     else:
         print("----- Using Cached Dataset ----- ")

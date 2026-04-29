@@ -1,0 +1,4 @@
+- +experiment=ft_pi_img
+- train.epochs=10
+- optim.lr=2e-4
+- data.num_versions=1

@@ -8,17 +8,18 @@ import copy
 
 from torch.amp.grad_scaler import GradScaler
 from torch.amp.autocast_mode import autocast
+from omegaconf import OmegaConf
 
 from .checkpoint import load_checkpoint, save_checkpoint
 
 
 def train_model(
-    model, dataloaders, criterion, args, optimizer, lr_scheduler, resume_path=None
+    model, dataloaders, criterion, cfg, optimizer, lr_scheduler, resume_path=None
 ):
     wandb.init(
         project="ph-robust-img",
-        name=args.name if args.name else "unnamed run",
-        config=vars(args),
+        name=cfg.run_name if cfg.run_name else "unnamed run",
+        config=OmegaConf.to_container(cfg, resolve=True),
     )
 
     start_epoch = 0
@@ -40,8 +41,8 @@ def train_model(
 
     scaler = GradScaler("cuda")
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    for epoch in range(start_epoch, args.epochs):
-        print("Epoch {}/{}".format(epoch, args.epochs - 1))
+    for epoch in range(start_epoch, cfg.train.epochs):
+        print("Epoch {}/{}".format(epoch, cfg.train.epochs - 1))
         print("-" * 10)
 
         wandb_metrics = {
@@ -61,7 +62,7 @@ def train_model(
             running_corrects = 0
 
             for inputs, labels in tqdm(dataloaders[phase], desc=phase):
-                if args.model != "ResNet":
+                if cfg.model.kind != "ResNet":
                     x1, x2 = inputs
                     x1 = x1.to(device)
                     x2 = x2.to(device)
@@ -136,7 +137,7 @@ def train_model(
             if new_params:
                 optimizer.add_param_group({"params": new_params, "lr": 3e-5})
                 print(
-                    f"Added {len(new_params)} newly unfrozen parameter tensors to the optimizer with LR {args.lr}."
+                    f"Added {len(new_params)} newly unfrozen parameter tensors to the optimizer with LR {cfg.optim.lr}."
                 )
 
     time_elapsed = time.time() - since

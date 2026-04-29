@@ -37,9 +37,9 @@ class PrecomputedDataset(torch.utils.data.Dataset):
 
 
 class AugmentAndCalculateFeatures:
-    def __init__(self, args, train=True, pi_mean=None, pi_std=None):
+    def __init__(self, cfg, train=True, pi_mean=None, pi_std=None):
         self.train = train
-        self.args = args
+        self.cfg = cfg
         self.base_augmentations = transforms.Compose(
             [
                 transforms.RandomResizedCrop(64, scale=(0.08, 1.0)),
@@ -87,7 +87,7 @@ class AugmentAndCalculateFeatures:
         pil_image = pil_image.convert("RGB")
         image_np = np.array(pil_image)
 
-        topo_features = self.pi_normalize(process_PI(input=pil_image, args=self.args))
+        topo_features = self.pi_normalize(process_PI(input=pil_image, cfg=self.cfg))
         if self.train:
             image_tensor = self.final_image_transform_train(image_np)
         else:

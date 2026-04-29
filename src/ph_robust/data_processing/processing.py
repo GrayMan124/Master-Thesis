@@ -33,9 +33,9 @@ class PrecomputedDataset(torch.utils.data.Dataset):
         return (img_tensor, topo), label
 
 
-def get_topo_DS(dir_path, dataset, args):
-    train_transform = AugmentAndCalculateFeatures(train=True, args=args)
-    val_transform = AugmentAndCalculateFeatures(train=False, args=args)
+def get_topo_DS(dir_path, dataset, cfg):
+    train_transform = AugmentAndCalculateFeatures(train=True, cfg=cfg)
+    val_transform = AugmentAndCalculateFeatures(train=False, cfg=cfg)
 
     train_set_full = dataset(root=dir_path, transform=train_transform, download=False)
     val_set_full = dataset(root=dir_path, transform=val_transform, download=False)
@@ -43,7 +43,7 @@ def get_topo_DS(dir_path, dataset, args):
     dataset_len = len(train_set_full)
     indicies = list(range(dataset_len))
 
-    train_size = int(dataset_len * (1 - args.val_size))
+    train_size = int(dataset_len * (1 - cfg.train.val_size))
     # val_size = dataset_len - train_size
 
     np.random.seed(42)
@@ -58,17 +58,17 @@ def get_topo_DS(dir_path, dataset, args):
 
     train_loader = DataLoader(
         train_subset,
-        batch_size=args.batch_size,
+        batch_size=cfg.train.batch_size,
         shuffle=True,
-        num_workers=args.num_workers,
+        num_workers=cfg.train.num_workers,
         pin_memory=True,
     )
 
     val_loader = DataLoader(
         val_subset,
-        batch_size=args.batch_size,
+        batch_size=cfg.train.batch_size,
         shuffle=False,
-        num_workers=args.num_workers,
+        num_workers=cfg.train.num_workers,
         pin_memory=True,
     )
 
@@ -91,16 +91,16 @@ def get_train_val_split(data_set, val_size):
     return train_subset, val_subset
 
 
-def process_data(data_set, data_path, num_versions, args):
+def process_data(data_set, data_path, num_versions, cfg):
     data_set = data_set["train"]
     train_subset, val_subset = get_train_val_split(
-        data_set=data_set, val_size=args.val_size
+        data_set=data_set, val_size=cfg.train.val_size
     )
     save_path = Path(data_path)
 
     print("----- Calculating Topo statistcs ------- ")
     raw_stats_stransform = AugmentAndCalculateFeatures(
-        args=args, train=False, pi_mean=None, pi_std=None
+        args=cfg, train=False, pi_mean=None, pi_std=None
     )
 
     class WrapperDataset(torch.utils.data.Dataset):
@@ -125,19 +125,19 @@ def process_data(data_set, data_path, num_versions, args):
     val_save_path = save_path / "val"
     val_save_path.mkdir(parents=True, exist_ok=True)
 
-    if args.maxNorm:
+    if cfg.topo.max_norm:
         processing_train = AugmentAndCalculateFeatures(
-            train=True, args=args, pi_mean=[0], pi_std=[max_t]
+            train=True, cfg=cfg, pi_mean=[0], pi_std=[max_t]
         )
         processing_val = AugmentAndCalculateFeatures(
-            train=False, args=args, pi_mean=[0], pi_std=[max_t]
+            train=False, cfg=cfg, pi_mean=[0], pi_std=[max_t]
         )
     else:
         processing_train = AugmentAndCalculateFeatures(
-            train=True, args=args, pi_mean=pi_mean, pi_std=pi_std
+            train=True, cfg=cfg, pi_mean=pi_mean, pi_std=pi_std
         )
         processing_val = AugmentAndCalculateFeatures(
-            train=False, args=args, pi_mean=pi_mean, pi_std=pi_std
+            train=False, cfg=cfg, pi_mean=pi_mean, pi_std=pi_std
         )
 
     for idx in tqdm(range(len(val_subset))):

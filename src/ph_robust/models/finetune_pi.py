@@ -10,7 +10,7 @@ from .blocks import BlockSmall, GatedFusion
 class TopoIMG_ResNet(
     nn.Module
 ):  # this is based on the resnet implementation on ResNet (using ResNet as the base to process the images)
-    def __init__(self, image_channels, hidden_size, args):
+    def __init__(self, image_channels, hidden_size, cfg):
 
         super().__init__()
         self.in_channels = 64
@@ -20,14 +20,14 @@ class TopoIMG_ResNet(
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
         # resnet layers
-        if args.tbs == "small":
+        if cfg.model.tbs == "small":
             self.topo_net = nn.Sequential(
                 self.__make_layer(64, 64, stride=1),
                 self.__make_layer(64, 128, stride=2),
             )
             self.fc = nn.Linear(128, hidden_size)
 
-        elif args.tbs == "normal":
+        elif cfg.model.tbs == "normal":
             self.topo_net = nn.Sequential(
                 self.__make_layer(64, 64, stride=1),
                 self.__make_layer(64, 128, stride=2),
@@ -36,7 +36,7 @@ class TopoIMG_ResNet(
             )
             self.fc = nn.Linear(256, hidden_size)
 
-        elif args.tbs == "large":
+        elif cfg.model.tbs == "large":
             self.topo_net = nn.Sequential(
                 self.__make_layer(64, 64, stride=1),
                 self.__make_layer(64, 128, stride=2),
@@ -87,25 +87,25 @@ class TopoIMG_ResNet(
 
 # Resnet with Topological features as topological images (in the IMG form) used for fine tuning
 class PIFineTuneModel(nn.Module):
-    def __init__(self, base_model, image_channels, num_classes, device, args):
+    def __init__(self, base_model, image_channels, num_classes, device, cfg):
 
         super().__init__()
         self.device = device
 
         self.base_model = base_model
-        if args.freeze_weights:
+        if cfg.model.freeze_weights:
             for param in self.base_model.parameters():
                 param.requires_grad = False
 
         num_features = self.base_model.fc.in_features
-        self.base_model.fc = nn.Linear(num_features, args.hidden_size)
-        self.args = args
+        self.base_model.fc = nn.Linear(num_features, cfg.model.hidden_size)
+        self.cfg = cfg
 
-        in_channels = 2 if args.topodim_concat else 1
+        in_channels = 2 if cfg.topo.concat else 1
 
-        if args.ft_attn:
+        if cfg.model.ft_attn:
             self.topo_net = TopoAttentionEncoder(
-                hidden_size=args.hidden_size,
+                hidden_size=cfg.model.hidden_size,
                 img_size=64,
                 patch_size=8,
                 in_channels=1,
@@ -114,20 +114,15 @@ class PIFineTuneModel(nn.Module):
                 dropout=0.1,
             )
         else:
-            self.topo_net = TopoIMG_ResNet(in_channels, args.hidden_size, args=args)
-        # if args.config:
-        #     layers = [
-        #         layer_from_config(layer_config) for layer_config in args.config["fc"]
-        #     ]
-        #     self.fc = nn.Sequential(*layers)
-        # else:
+            self.topo_net = TopoIMG_ResNet(in_channels, cfg.model.hidden_size, cfg=cfg)
+
         self.fc = nn.Sequential(
-            nn.Linear(args.hidden_size * 2, args.hidden_size),
+            nn.Linear(cfg.model.hidden_size * 2, cfg.model.hidden_size),
             nn.ReLU(inplace=True),
-            nn.Linear(args.hidden_size, num_classes),
+            nn.Linear(cfg.model.hidden_size, num_classes),
         )
-        if args.fg:
-            self.fusion = GatedFusion(args.hidden_size)
+        if cfg.model.fg:
+            self.fusion = GatedFusion(cfg.model.hidden_size)
         else:
             self.fusion = None
 
@@ -139,7 +134,7 @@ class PIFineTuneModel(nn.Module):
         return backbone_params, topo_params
 
     def unfreeze(self):
-        if self.args.freeze_weights:
+        if self.cfg.model.freeze_weights:
             for param in self.base_model.parameters():
                 param.requires_grad = True
 

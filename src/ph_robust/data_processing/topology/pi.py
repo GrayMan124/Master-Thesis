@@ -5,7 +5,7 @@ import gudhi as gd
 import gudhi.representations
 
 
-def process_PI(input, args):  # Processing to Persistant images
+def process_PI(input, cfg):  # Processing to Persistant images
 
     image_np = np.array(input)
     bw_img = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)
@@ -22,7 +22,7 @@ def process_PI(input, args):  # Processing to Persistant images
     )
 
     # For the Persistent Images, the concat output gives 2 images - a simple solution
-    if args.topodim_concat:
+    if cfg.topo.concat:
         PI_0 = PI.fit_transform(
             [cubical_complex.persistence_intervals_in_dimension(0)[:-1]]
         )
@@ -31,15 +31,15 @@ def process_PI(input, args):  # Processing to Persistant images
         L_t_1 = torch.tensor(PI_1, dtype=torch.float).reshape([1, 64, 64])
         L_t = torch.cat([L_t_0, L_t_1], dim=0)
 
-    elif args.topodim == 0:
+    elif cfg.topo.dim == 0:
         PI = PI.fit_transform(
-            [cubical_complex.persistence_intervals_in_dimension(args.topodim)[:-1]]
+            [cubical_complex.persistence_intervals_in_dimension(cfg.topo.dim)[:-1]]
         )
         L_t = torch.tensor(PI, dtype=torch.float).reshape([1, 64, 64])
 
-    elif args.topodim == 1:
+    elif cfg.topo.dim == 1:
         PI = PI.fit_transform(
-            [cubical_complex.persistence_intervals_in_dimension(args.topodim)]
+            [cubical_complex.persistence_intervals_in_dimension(cfg.topo.dim)]
         )
         L_t = torch.tensor(PI, dtype=torch.float).reshape([1, 64, 64])
 

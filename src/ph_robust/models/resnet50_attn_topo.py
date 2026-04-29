@@ -59,7 +59,7 @@ class TopoAttentionEncoder(nn.Module):
 
 # Base ResNet-50
 class ResNet_AttnTopo(nn.Module):
-    def __init__(self, image_channels, num_classes, args):
+    def __init__(self, image_channels, num_classes, cfg):
 
         super(ResNet_AttnTopo, self).__init__()
         self.conv1 = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
@@ -93,18 +93,18 @@ class ResNet_AttnTopo(nn.Module):
             num_blocks=3,
         )
         self.topo_net = TopoAttentionEncoder(
-            hidden_size=args.hidden_size,
+            hidden_size=cfg.model.hidden_size,
             img_size=64,
             patch_size=8,
-            in_channels=2 if args.topodim_concat else 1,
+            in_channels=2 if cfg.topodim_concat else 1,
             num_heads=4,
             depth=2,
             dropout=0.2,
         )
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc_img = nn.Sequential(nn.Linear(2048, args.hidden_size), nn.ReLU())
-        self.fc = nn.Linear(2 * args.hidden_size, num_classes)
+        self.fc_img = nn.Sequential(nn.Linear(2048, cfg.model.hidden_size), nn.ReLU())
+        self.fc = nn.Linear(2 * cfg.model.hidden_size, num_classes)
 
     def __make_layer(
         self, in_channels, inter_channels, out_channels, stride, num_blocks

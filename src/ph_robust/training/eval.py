@@ -20,7 +20,7 @@ def accuracy_test(output, target, topk=(1, 5)):
 
 
 @torch.inference_mode()
-def test_model(model, dataloader, criterion, args):
+def test_model(model, dataloader, criterion, cfg):
     print("Testing model")
     model.eval()
     running_loss = 0.0
@@ -30,7 +30,7 @@ def test_model(model, dataloader, criterion, args):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     for inputs, labels in tqdm(dataloader):
-        if args.model != "ResNet":
+        if cfg.model.kind != "ResNet":
             x1, x2 = inputs
             x1 = x1.to(device)
             x2 = x2.to(device)
@@ -40,7 +40,8 @@ def test_model(model, dataloader, criterion, args):
             inputs = inputs.to(device)
             current_batch_size = inputs.size(0)
         labels = labels.to(device)
-        if not args.ph_test:
+
+        if not cfg.eval.ph_test:  # TODO: add this to the configs
             outputs = model(inputs)
         else:
             x1 = torch.nn.functional.interpolate(

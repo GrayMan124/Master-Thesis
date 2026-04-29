@@ -14,17 +14,17 @@ class TupleSequential(nn.Sequential):
 class TopoIMG_transModel(
     nn.Module
 ):  # This model is specificaly designed to transform the input of 1x64x64 into 3x32x32 (usable in topoblock configugartion)
-    def __init__(self, args):
+    def __init__(self, cfg):
         super(TopoIMG_transModel, self).__init__()
 
         # NOTE: For this implementation, I could stick with the base image size 1x64x64 since the overall images are the same size, but let's keep it for now
 
-        if args.topodim_concat:
+        if cfg.topo.concat:
             in_ch = 2
         else:
             in_ch = 1
 
-        if args.tbs == "small":
+        if cfg.model.tbs == "small":
             self.conv_network = nn.Sequential(
                 nn.Conv2d(
                     in_channels=in_ch,
@@ -37,7 +37,7 @@ class TopoIMG_transModel(
                 nn.ReLU(),
             )
 
-        elif args.tbs == "normal":
+        elif cfg.model.tbs == "normal":
             self.conv_network = nn.Sequential(
                 nn.Conv2d(
                     in_channels=in_ch,
@@ -59,7 +59,7 @@ class TopoIMG_transModel(
                 nn.ReLU(),
             )
 
-        elif args.tbs == "large":
+        elif cfg.model.tbs == "large":
             self.conv_network = nn.Sequential(
                 nn.Conv2d(
                     in_channels=in_ch,
@@ -95,11 +95,11 @@ class TopoIMG_transModel(
 
 
 class PH_ResNet50(nn.Module):
-    def __init__(self, image_channels, num_classes, args):
+    def __init__(self, image_channels, num_classes, cfg):
 
         super().__init__()
-        self.args = args
-        self.topo_embed = TopoIMG_transModel(args=self.args)
+        self.cfg = cfg
+        self.topo_embed = TopoIMG_transModel(cfg=self.cfg)
         self.conv1 = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU()
@@ -134,13 +134,17 @@ class PH_ResNet50(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.avgpool_t = nn.AdaptiveAvgPool2d((1, 1))
 
-        self.res_net_fc = nn.Sequential(nn.Linear(2048, args.hidden_size), nn.ReLU())
+        self.res_net_fc = nn.Sequential(
+            nn.Linear(2048, cfg.model.hidden_size), nn.ReLU()
+        )
         self.res_net_fc_topo = nn.Sequential(
-            nn.Linear(2048, args.hidden_size), nn.ReLU()
+            nn.Linear(2048, cfg.model.hidden_size), nn.ReLU()
         )
 
         self.fc = nn.Sequential(
-            nn.Linear(args.hidden_size * 2, 512), nn.ReLU(), nn.Linear(512, num_classes)
+            nn.Linear(cfg.model.hidden_size * 2, 512),
+            nn.ReLU(),
+            nn.Linear(512, num_classes),
         )
 
     def __make_layer(
@@ -162,7 +166,7 @@ class PH_ResNet50(nn.Module):
                 in_channels=in_channels,
                 inter_channels=inter_channels,
                 out_channels=out_channels,
-                args=self.args,
+                cfg=self.cfg,
                 identity_downsample=identity_downsample,
                 identity_downsample_t=identity_downsample_t,
                 stride=stride,
@@ -174,7 +178,7 @@ class PH_ResNet50(nn.Module):
                     in_channels=out_channels,
                     inter_channels=inter_channels,
                     out_channels=out_channels,
-                    args=self.args,
+                    cfg=self.cfg,
                 )
             )
 

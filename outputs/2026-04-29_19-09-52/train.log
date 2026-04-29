@@ -1,0 +1,4 @@
+[2026-04-29 19:10:04,615][huggingface_hub.utils._http][WARNING] - '[Errno 101] Network is unreachable' thrown while requesting HEAD https://huggingface.co/datasets/zh-plus/tiny-imagenet/resolve/5a77092c28e51558c5586e9c5eb71a7e17a5e43f/tiny-imagenet.py
+[2026-04-29 19:10:04,615][huggingface_hub.utils._http][WARNING] - Retrying in 1s [Retry 1/5].
+[2026-04-29 19:10:05,618][datasets.load][WARNING] - Using the latest cached version of the dataset since zh-plus/tiny-imagenet couldn't be found on the Hugging Face Hub
+[2026-04-29 19:10:05,620][datasets.packaged_modules.cache.cache][WARNING] - Found the latest cached dataset configuration 'default' at /mnt/sam/pi_data/datasets/zh-plus___tiny-imagenet/default/0.0.0/5a77092c28e51558c5586e9c5eb71a7e17a5e43f (last modified on Tue Dec 16 21:15:58 2025).
