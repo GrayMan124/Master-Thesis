@@ -1,6 +1,7 @@
 kind: PI_IMG                 
 hidden_size: 256
 freeze_weights: false
+tbs: normal                   
 tb_add_x: false               
 tb_add_t: false
 ft_attn: false

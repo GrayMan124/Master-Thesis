@@ -23,7 +23,7 @@ _REGISTRY = {
         device=device,
         cfg=cfg,
     ),
-    "RN50_S": lambda cfg, device: PH_ResNet50(
+    "RN50_Scr": lambda cfg, device: PH_ResNet50(
         image_channels=3,
         num_classes=cfg.data.num_classes,
         cfg=cfg,

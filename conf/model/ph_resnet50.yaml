@@ -1,4 +1,4 @@
-kind: RN50_S
+kind: RN50_Scr
 hidden_size: 256
 freeze_weights: false
 tbs: normal                   

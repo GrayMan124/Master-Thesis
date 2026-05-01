@@ -1,7 +1,6 @@
-vectorization: pi              # was --tv
-dim: 1                         # was --topodim
-concat: false                  # was --topodim_concat
-tbs: normal                    # was --tbs (small/normal/large)
-resolution: 64                 # was --res, but for PI it's 64x64 not 100
+vectorization: pi           
+dim: 1                       
+concat: false                 
+resolution: 64                 
 bandwidth: 5
-max_norm: false                # was --maxNorm
+max_norm: false            
