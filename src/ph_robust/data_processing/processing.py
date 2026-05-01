@@ -100,7 +100,7 @@ def process_data(data_set, data_path, num_versions, cfg):
 
     print("----- Calculating Topo statistcs ------- ")
     raw_stats_stransform = AugmentAndCalculateFeatures(
-        args=cfg, train=False, pi_mean=None, pi_std=None
+        cfg=cfg, train=False, pi_mean=None, pi_std=None
     )
 
     class WrapperDataset(torch.utils.data.Dataset):
@@ -158,7 +158,7 @@ def process_data(data_set, data_path, num_versions, cfg):
             torch.save((tensor_data, topo_data, label), version_path / f"{idx}.pt")
 
 
-def process_test(data_set, data_path, args):
+def process_test(data_set, data_path, cfg):
     # data_set = data_set['test']
     save_path = Path(data_path)
     try:
@@ -174,7 +174,7 @@ def process_test(data_set, data_path, args):
     test_save_path.mkdir(parents=True, exist_ok=True)
 
     processing_test = AugmentAndCalculateFeatures(
-        train=False, args=args, pi_mean=pi_mean, pi_std=pi_std
+        train=False, cfg=cfg, pi_mean=pi_mean, pi_std=pi_std
     )
 
     for idx in tqdm(range(len(data_set))):
