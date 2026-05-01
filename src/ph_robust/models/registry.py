@@ -14,24 +14,24 @@ _REGISTRY = {
         image_channels=3,
         num_classes=cfg.data.num_classes,
         device=device,
-        args=cfg,
+        cfg=cfg,
     ),
     "ResNet50": lambda cfg, device: ResNetFineTune(
         base_model=resnet50(weights="IMAGENET1K_V2"),
         image_channels=3,
         num_classes=cfg.data.num_classes,
         device=device,
-        args=cfg,
+        cfg=cfg,
     ),
     "RN50_S": lambda cfg, device: PH_ResNet50(
         image_channels=3,
         num_classes=cfg.data.num_classes,
-        args=cfg,
+        cfg=cfg,
     ),
     "RN50_Atn": lambda cfg, device: ResNet_AttnTopo(
         image_channels=3,
         num_classes=cfg.data.num_classes,
-        args=cfg,
+        cfg=cfg,
     ),
 }
 
