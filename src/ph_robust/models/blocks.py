@@ -22,7 +22,7 @@ class Block(nn.Module):
         identity_downsample=None,
         stride=1,
     ):
-        super(Block, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(
             in_channels, inter_channels, kernel_size=1, stride=stride, padding=0
         )
