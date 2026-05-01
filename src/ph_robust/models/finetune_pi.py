@@ -20,14 +20,14 @@ class TopoIMG_ResNet(
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
         # resnet layers
-        if cfg.model.tbs == "small":
+        if cfg.topo.tbs == "small":
             self.topo_net = nn.Sequential(
                 self.__make_layer(64, 64, stride=1),
                 self.__make_layer(64, 128, stride=2),
             )
             self.fc = nn.Linear(128, hidden_size)
 
-        elif cfg.model.tbs == "normal":
+        elif cfg.topo.tbs == "normal":
             self.topo_net = nn.Sequential(
                 self.__make_layer(64, 64, stride=1),
                 self.__make_layer(64, 128, stride=2),
@@ -36,7 +36,7 @@ class TopoIMG_ResNet(
             )
             self.fc = nn.Linear(256, hidden_size)
 
-        elif cfg.model.tbs == "large":
+        elif cfg.topo.tbs == "large":
             self.topo_net = nn.Sequential(
                 self.__make_layer(64, 64, stride=1),
                 self.__make_layer(64, 128, stride=2),
