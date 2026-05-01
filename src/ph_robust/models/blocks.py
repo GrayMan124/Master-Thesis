@@ -86,7 +86,7 @@ class Block_Topo(nn.Module):
 
 class BlockSmall(nn.Module):
     def __init__(self, in_channels, out_channels, identity_downsample=None, stride=1):
-        super(Block, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(
             in_channels, out_channels, kernel_size=3, stride=stride, padding=1
         )
