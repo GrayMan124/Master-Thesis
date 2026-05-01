@@ -2,5 +2,5 @@ name: tiny_imagenet
 hf_id: zh-plus/tiny-imagenet
 num_classes: 200
 image_size: 64
-path: ${oc.env:DATA_PATH,./data} 
+path: ${oc.env:DATA_PATH,./data/tinyImageNet/} 
 num_versions: 10
