@@ -45,7 +45,7 @@ def main(cfg: DictConfig) -> None:
         model=model,
         dataloaders={"train": train_loader, "val": val_loader},
         criterion=criterion,
-        args=cfg,
+        cfg=cfg,
         optimizer=optimizer,
         lr_scheduler=lr_scheduler,
         resume_path=resume_path,
