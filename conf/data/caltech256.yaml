@@ -1,0 +1,6 @@
+name: caltech256 
+hf_id: ilee0022/Caltech-256
+num_classes: 257
+image_size: 224
+path: /mnt/sam/pi_data/processed_data/tinyImageNet/
+num_versions: 10
