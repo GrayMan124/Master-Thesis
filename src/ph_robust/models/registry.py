@@ -8,13 +8,17 @@ from .finetune_resnet import ResNetFineTune
 from .ph_resnet50 import PH_ResNet50_Scratch
 # from .resnet50_attn_topo import ResNet_AttnTopo
 
+
+# TODO:
 _REGISTRY = {
-    "PI_IMG": lambda cfg, device: PIFineTuneModel(  # Attention by using att in config
-        base_model=resnet50(weights="IMAGENET1K_V2"),
-        image_channels=3,
-        num_classes=cfg.data.num_classes,
-        device=device,
-        cfg=cfg,
+    "PI_IMG": lambda cfg, device: (
+        PIFineTuneModel(  # Attention by using ft_att in model config
+            base_model=resnet50(weights="IMAGENET1K_V2"),
+            image_channels=3,
+            num_classes=cfg.data.num_classes,
+            device=device,
+            cfg=cfg,
+        )
     ),
     "ResNet50": lambda cfg, device: ResNetFineTune(
         base_model=resnet50(weights="IMAGENET1K_V2"),
