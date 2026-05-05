@@ -1,21 +1,18 @@
-# conf/experiment/ft_pi_img.yaml
+# conf/experiment/ft_resnet_50_baseline.yaml
 # @package _global_
 defaults:
-  - override /model: 
+  - override /model: ResNet50
   - override /topo: pi
   - override /data: tiny_imagenet
   - override /optim: adamw
 
-run_name: PH_Fine_tune
+run_name: Baseline_FT
 
 train:
   epochs: 100 
   batch_size: 128
 
 model:
-  hidden_size: 512
+  hidden_size: 1024
   tbs: normal 
 
-topo:
-  concat: false 
-  tbs: normal 

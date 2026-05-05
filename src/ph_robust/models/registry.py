@@ -5,11 +5,11 @@ from torchvision.models import resnet50
 
 from .finetune_pi import PIFineTuneModel
 from .finetune_resnet import ResNetFineTune
-from .ph_resnet50 import PH_ResNet50
-from .resnet50_attn_topo import ResNet_AttnTopo
+from .ph_resnet50 import PH_ResNet50_Scratch
+# from .resnet50_attn_topo import ResNet_AttnTopo
 
 _REGISTRY = {
-    "PI_IMG": lambda cfg, device: PIFineTuneModel(
+    "PI_IMG": lambda cfg, device: PIFineTuneModel(  # Attention by using att in config
         base_model=resnet50(weights="IMAGENET1K_V2"),
         image_channels=3,
         num_classes=cfg.data.num_classes,
@@ -23,12 +23,7 @@ _REGISTRY = {
         device=device,
         cfg=cfg,
     ),
-    "RN50_Scr": lambda cfg, device: PH_ResNet50(
-        image_channels=3,
-        num_classes=cfg.data.num_classes,
-        cfg=cfg,
-    ),
-    "RN50_Atn": lambda cfg, device: ResNet_AttnTopo(
+    "PH_RN50_Scr": lambda cfg, device: PH_ResNet50_Scratch(
         image_channels=3,
         num_classes=cfg.data.num_classes,
         cfg=cfg,

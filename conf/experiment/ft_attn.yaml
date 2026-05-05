@@ -1,7 +1,7 @@
 # conf/experiment/ft_attn.yaml
 # @package _global_
 defaults:
-  - override /model: RN50_Atn
+  - override /model: PI_IMG 
   - override /topo: pi
   - override /data: tiny_imagenet
   - override /optim: adamw
@@ -15,6 +15,7 @@ train:
 model:
   hidden_size: 512
   tbs: normal 
+  ft_attn: true
 
 topo:
   concat: false 

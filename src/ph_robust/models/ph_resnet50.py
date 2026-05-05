@@ -94,7 +94,7 @@ class TopoIMG_transModel(
         return self.conv_network(x)
 
 
-class PH_ResNet50(nn.Module):
+class PH_ResNet50_Scratch(nn.Module):
     def __init__(self, image_channels, num_classes, cfg):
 
         super().__init__()
