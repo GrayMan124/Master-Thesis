@@ -6,7 +6,7 @@ defaults:
   - override /data: tiny_imagenet
   - override /optim: adam
 
-run_name: Baseline_FT
+run_name: Baseline_Scr
 
 train:
   epochs: 100 
