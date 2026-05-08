@@ -1,4 +1,4 @@
-# @package_global_
+# @package _global_
 # conf/experiment/ft_attn.yaml
 defaults:
   - override /model: pi_img 
