@@ -6,6 +6,7 @@ from torchvision.models import resnet50
 from .finetune_pi import PIFineTuneModel
 from .finetune_resnet import ResNetFineTune
 from .ph_resnet50 import PH_ResNet50_Scratch
+from .resnet50_base import ResNet50
 # from .resnet50_attn_topo import ResNet_AttnTopo
 
 
@@ -28,6 +29,11 @@ _REGISTRY = {
         cfg=cfg,
     ),
     "PH_RN50_Scr": lambda cfg, device: PH_ResNet50_Scratch(
+        image_channels=3,
+        num_classes=cfg.data.num_classes,
+        cfg=cfg,
+    ),
+    "RN50_Scr": lambda cfg, device: ResNet50(
         image_channels=3,
         num_classes=cfg.data.num_classes,
         cfg=cfg,

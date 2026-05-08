@@ -4,7 +4,7 @@ from .blocks import Block
 
 # Base ResNet-50
 class ResNet50(nn.Module):
-    def __init__(self, image_channels, num_classes):
+    def __init__(self, image_channels, num_classes, cfg):
 
         super().__init__()
         self.conv1 = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)

@@ -1,10 +1,10 @@
-# conf/experiment/ft_resnet_50_baseline.yaml
 # @package _global_
+# conf/experiment/ft_resnet_50_baseline.yaml
 defaults:
-  - override /model: ResNet50
+  - override /model: resnet50_scr
   - override /topo: pi
   - override /data: tiny_imagenet
-  - override /optim: adamw
+  - override /optim: adam
 
 run_name: Baseline_FT
 

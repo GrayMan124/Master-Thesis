@@ -1,10 +1,10 @@
 # conf/experiment/scr_ph_rn50.yaml
 # @package _global_
 defaults:
-  - override /model: PH_RN50_Scr
+  - override /model: resnet50_scr
   - override /topo: pi
   - override /data: tiny_imagenet
-  - override /optim: adamw
+  - override /optim: adam
 
 run_name: PH_Scratch
 
