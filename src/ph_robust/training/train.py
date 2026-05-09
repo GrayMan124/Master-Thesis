@@ -20,6 +20,7 @@ def train_model(
         project="ph-robust-img",
         name=cfg.run_name if cfg.run_name else "unnamed run",
         config=OmegaConf.to_container(cfg, resolve=True),
+        reinit=True,
     )
 
     start_epoch = 0
@@ -147,7 +148,7 @@ def train_model(
         )
     )
     print("Best val Acc: {:4f}".format(best_acc))
-
+    wandb.finish()
     model.load_state_dict(best_model_wts)
 
     return model, val_acc_history
