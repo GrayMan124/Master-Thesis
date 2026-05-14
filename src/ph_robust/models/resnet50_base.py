@@ -97,3 +97,6 @@ class ResNet50(nn.Module):
             ),
             nn.BatchNorm2d(out_channels),
         )
+
+    def unfreeze(self):
+        pass
