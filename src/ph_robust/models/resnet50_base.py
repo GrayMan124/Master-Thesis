@@ -72,7 +72,7 @@ class ResNet50(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
-
+        x, _ = x
         # x = transforms.functional.resize(x, (112, 112))
         x = self.conv1(x)
         x = self.bn1(x)
