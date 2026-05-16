@@ -6,6 +6,15 @@ import torch.optim as optim
 
 
 def build_optimizer(model, cfg):
+    if cfg.optim.name == "sgd":
+        active = [p for p in model.parameters() if p.requires_grad]
+        return optim.SGD(
+            params=active,
+            lr=cfg.optim.lr,
+            momentum=cfg.optim.momentum,
+            weight_decay=cfg.optim.weight_decay,
+            nesterov=True,
+        )
     try:
         backbone_params, topo_params = model.get_params()
         print("Using AdamW with seperate topo/backbone param groups")
@@ -19,7 +28,7 @@ def build_optimizer(model, cfg):
         print(f"Failed to build AdamW, using single-group Adam: {e}")
         active = [p for p in model.parameters() if p.requires_grad]
         return optim.Adam(
-            active, lr=cfg.optim.lr, weight_decay=1e-4, fused=True, eps=1e4
+            active, lr=cfg.optim.lr, weight_decay=1e-4, fused=True, eps=1e-6
         )
 
 

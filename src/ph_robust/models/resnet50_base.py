@@ -41,6 +41,18 @@ class ResNet50(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(2048, num_classes)
 
+        # NOTE:different initialization
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+        # zero-init last BN of each bottleneck so blocks start as identity
+        for m in self.modules():
+            if isinstance(m, Block):
+                nn.init.constant_(m.bn3.weight, 0)
+
     def _make_layer(
         self, in_channels, inter_channels, out_channels, stride, num_blocks
     ):

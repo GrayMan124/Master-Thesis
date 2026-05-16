@@ -24,11 +24,11 @@ class Block(nn.Module):
     ):
         super().__init__()
         self.conv1 = nn.Conv2d(
-            in_channels, inter_channels, kernel_size=1, stride=stride, padding=0
+            in_channels, inter_channels, kernel_size=1, stride=1, padding=0
         )
         self.bn1 = nn.BatchNorm2d(inter_channels)
         self.conv2 = nn.Conv2d(
-            inter_channels, inter_channels, kernel_size=3, stride=1, padding=1
+            inter_channels, inter_channels, kernel_size=3, stride=stride, padding=1
         )
         self.bn2 = nn.BatchNorm2d(inter_channels)
         self.conv3 = nn.Conv2d(
@@ -79,7 +79,7 @@ class Block_Topo(nn.Module):
         x = self.bn2(x)
         if self.identity_downsample is not None:
             identity = self.identity_downsample(identity)
-        x += identity
+        x = x + identity
         x = self.relu(x)
         return x
 
