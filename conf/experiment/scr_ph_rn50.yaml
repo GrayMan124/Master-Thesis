@@ -1,5 +1,5 @@
-# conf/experiment/scr_ph_rn50.yaml
 # @package _global_
+# conf/experiment/scr_ph_rn50.yaml
 defaults:
   - override /model: ph_rn50_scr
   - override /topo: pi
