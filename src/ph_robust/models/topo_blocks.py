@@ -95,13 +95,13 @@ class PIBlock(nn.Module):
         if self.identity_downsample is not None:
             identity_t = self.identity_downsample_t(identity_t)
 
-        x += identity
+        x = x + identity
 
         # aligned_t = nn.functional.interpolate(identity_t, size=(x.shape[2],x.shape[3]),mode='bilinear',align_corners=False)
-        x += topo
+        x = x + topo
 
-        if self.cfg.topo.tb_add_t:
-            topo += identity_t
+        # if self.cfg.topo.tb_add_t:
+        #     topo += identity_t
 
         # Adding the
         # if self.cfg.topo.tb_add_x:
