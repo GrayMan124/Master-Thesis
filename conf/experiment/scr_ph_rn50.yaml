@@ -1,10 +1,10 @@
 # conf/experiment/scr_ph_rn50.yaml
 # @package _global_
 defaults:
-  - override /model: resnet50_scr
+  - override /model: ph_rn50_scr
   - override /topo: pi
   - override /data: tiny_imagenet
-  - override /optim: adam
+  - override /optim: adamw
 
 run_name: PH_Scratch
 
@@ -17,6 +17,6 @@ topo:
   tbs: normal 
 
 model:
-  hidden_size: 1024
+  hidden_size: 512
   tbs: normal 
 
