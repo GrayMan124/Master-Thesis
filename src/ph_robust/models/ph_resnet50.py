@@ -114,14 +114,16 @@ class PH_ResNet50_Scratch(nn.Module):
             inter_channels=128,
             out_channels=512,
             stride=2,
-            num_blocks=4,
+            num_blocks=3,
+            # num_blocks=4, #NOTE: This is standard
         )
         self.layer3 = self.__make_layer(
             in_channels=512,
             inter_channels=256,
             out_channels=1024,
             stride=2,
-            num_blocks=6,
+            num_blocks=3,
+            # num_blocks=6, #NOTE: This is the standard
         )
         self.layer4 = self.__make_layer(
             in_channels=1024,
