@@ -1,0 +1,40 @@
+import torch.nn as nn
+
+
+# BasicResNet50 finetune (base model, no topological features)
+class ResNetFineTune(nn.Module):
+    def __init__(self, base_model, image_channels, num_classes, device, cfg):
+        super(ResNetFineTune, self).__init__()
+        self.device = device
+
+        self.base_model = base_model
+        for _, module in self.base_model.named_modules():
+            if isinstance(module, nn.BatchNorm2d):
+                module.eps = 1e-4
+        if cfg.model.freeze_weights:
+            for param in self.base_model.parameters():
+                param.requires_grad = False
+
+        num_features = self.base_model.fc.in_features
+
+        self.base_model.fc = nn.Linear(num_features, cfg.model.hidden_size)
+        self.fc = nn.Sequential(
+            nn.Linear(cfg.model.hidden_size, cfg.model.hidden_size),
+            nn.ReLU(),
+            nn.Linear(cfg.model.hidden_size, num_classes),
+        )
+
+    def forward(self, x):
+
+        x, _ = x
+        # x = torch.nn.functional.interpolate(x, size= (224,224), mode = 'bilinear', align_corners= False)
+        x = self.base_model(x)
+        x = self.fc(x)
+        return x
+
+    def identity_downsample(self, in_channels, out_channels):
+
+        return nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(out_channels),
+        )

@@ -1,0 +1,18 @@
+# @package _global_
+# conf/experiment/ft_resnet_50_baseline.yaml
+defaults:
+  - override /model: resnet50_scr
+  - override /topo: pi
+  - override /data: tiny_imagenet
+  - override /optim: adam
+
+run_name: Baseline_Scr
+
+train:
+  epochs: 100 
+  batch_size: 128
+
+model:
+  hidden_size: 1024
+  tbs: normal 
+

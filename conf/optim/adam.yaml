@@ -1,0 +1,5 @@
+name: adam
+lr: 0.0003
+lr_b: 0.00003                  # backbone LR (used in two-group AdamW)
+weight_decay: 0.0001
+scheduler: cosine              # or "plateau"

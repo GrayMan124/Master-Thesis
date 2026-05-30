@@ -1,0 +1,4 @@
+[2026-04-27 21:26:12,311][httpx][INFO] - HTTP Request: HEAD https://huggingface.co/datasets/zh-plus/tiny-imagenet/resolve/main/README.md "HTTP/1.1 307 Temporary Redirect"
+[2026-04-27 21:26:14,771][httpx][INFO] - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/datasets/zh-plus/tiny-imagenet/5a77092c28e51558c5586e9c5eb71a7e17a5e43f/README.md "HTTP/1.1 200 OK"
+[2026-04-27 21:26:15,280][httpx][INFO] - HTTP Request: GET https://huggingface.co/api/resolve-cache/datasets/zh-plus/tiny-imagenet/5a77092c28e51558c5586e9c5eb71a7e17a5e43f/README.md "HTTP/1.1 200 OK"
+[2026-04-27 21:26:15,615][httpx][INFO] - HTTP Request: HEAD https://huggingface.co/datasets/zh-plus/tiny-imagenet/resolve/5a77092c28e51558c5586e9c5eb71a7e17a5e43f/tiny-imagenet.py "HTTP/1.1 404 Not Found"

@@ -1,0 +1,6 @@
+vectorization: pi           
+dim: 1                       
+concat: false                 
+resolution: 64                 
+bandwidth: 5
+max_norm: false            

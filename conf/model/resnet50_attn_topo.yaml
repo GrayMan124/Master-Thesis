@@ -1,0 +1,5 @@
+kind: RN50_Atn
+hidden_size: 256
+freeze_weights: false
+ft_attn: true
+fg: false

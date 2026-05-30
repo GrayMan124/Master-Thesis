@@ -1,0 +1,39 @@
+run_name: ''
+seed: 119
+train:
+  epochs: 10
+  batch_size: 64
+  num_workers: 2
+  val_size: 0.2
+  compile: true
+  save_model: false
+data:
+  name: tiny_imagenet
+  hf_id: zh-plus/tiny-imagenet
+  num_classes: 200
+  image_size: 64
+  path: /mnt/sam/pi_data/processed_data/tinyImageNet/
+  num_versions: 1
+model:
+  kind: PI_IMG
+  hidden_size: 256
+  freeze_weights: false
+  tb_add_x: false
+  tb_add_t: false
+  ft_attn: false
+  fg: false
+optim:
+  name: adam
+  lr: 0.0002
+  lr_b: 3.0e-05
+  weight_decay: 0.0001
+  scheduler: cosine
+topo:
+  vectorization: pi
+  dim: 1
+  concat: false
+  tbs: normal
+  resolution: 64
+  bandwidth: 5
+  max_norm: false
+experiment: {}

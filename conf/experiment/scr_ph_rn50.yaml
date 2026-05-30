@@ -1,0 +1,22 @@
+# @package _global_
+# conf/experiment/scr_ph_rn50.yaml
+defaults:
+  - override /model: ph_rn50_scr
+  - override /topo: pi
+  - override /data: tiny_imagenet
+  - override /optim: adamw
+
+run_name: PH_Scratch
+
+train:
+  epochs: 100 
+  batch_size: 128
+
+topo:
+  concat: false 
+  tbs: normal 
+
+model:
+  hidden_size: 512
+  tbs: normal 
+

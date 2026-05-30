@@ -1,0 +1,5 @@
+name: adamw
+lr: 0.0003
+lr_b: 0.00003
+weight_decay: 0.05
+scheduler: cosine
