@@ -30,7 +30,7 @@ class PIBlock(nn.Module):
         self.relu = nn.ReLU()
         self.identity_downsample = identity_downsample
 
-        self.identity_downsample_t = identity_downsample_t
+        # self.identity_downsample_t = identity_downsample_t
 
         # Topo Section
         if cfg.model.tbs == "small":
@@ -89,11 +89,12 @@ class PIBlock(nn.Module):
         x = self.bn3(x)
         if self.identity_downsample is not None:
             identity = self.identity_downsample(identity)
+            identity_t = self.identity_downsample(identity_t)
 
         topo = self.topo_net(topo)
 
-        if self.identity_downsample is not None:
-            identity_t = self.identity_downsample_t(identity_t)
+        # if self.identity_downsample is not None:
+        #     identity_t = self.identity_downsample_t(identity_t)
 
         x = x + identity
 
