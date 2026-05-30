@@ -1,0 +1,18 @@
+# @package _global_
+# conf/experiment/scr_trn_rn50.yaml
+defaults:
+  - override /model: trn_ph_rn50
+  - override /topo: pi
+  - override /data: tiny_imagenet
+  - override /optim: adam
+
+run_name: TRN_RN50_Scratch 
+
+train:
+  epochs: 100 
+  batch_size: 128
+
+model:
+  hidden_size: 1024
+  tbs: normal 
+
