@@ -15,8 +15,8 @@ class TupleSequential(nn.Sequential):
 class PH_TEN(nn.Module):
     def __init__(self, image_channels, cfg, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.topo_embed = TopoIMG_transModel(cfg=cfg)
-        self.conv1 = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
+        # self.topo_embed = TopoIMG_transModel(cfg=cfg)
+        self.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU()
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
@@ -85,7 +85,7 @@ class PH_TEN(nn.Module):
     def forward(self, x):
 
         # x = transforms.functional.resize(x, (112, 112))
-        x = self.topo_embed(x)
+        # x = self.topo_embed(x)
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
