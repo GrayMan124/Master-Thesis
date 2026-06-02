@@ -5,10 +5,8 @@ class TopoIMG_transModel(
     nn.Module
 ):  # This model is specificaly designed to transform the input of 1x64x64 into 3x32x32 (usable in topoblock configugartion)
     def __init__(self, cfg):
-        super(TopoIMG_transModel, self).__init__()
-
+        super().__init__()
         # NOTE: For this implementation, I could stick with the base image size 1x64x64 since the overall images are the same size, but let's keep it for now
-
         if cfg.topo.concat:
             in_ch = 2
         else:

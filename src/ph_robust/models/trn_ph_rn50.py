@@ -15,7 +15,7 @@ class TupleSequential(nn.Sequential):
 class PH_TEN(nn.Module):
     def __init__(self, image_channels, cfg, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.topo_embed = TopoIMG_transModel(cfg=self.cfg)
+        self.topo_embed = TopoIMG_transModel(cfg=cfg)
         self.conv1 = nn.Conv2d(image_channels, 64, kernel_size=7, stride=2, padding=3)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU()
