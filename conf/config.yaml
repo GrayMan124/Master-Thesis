@@ -14,7 +14,7 @@ train:
   batch_size: 64
   num_workers: 2
   val_size: 0.2
-  compile: true            # whether to torch.compile the model
+  compile: false # whether to torch.compile the model
   save_model: false        # was --sm
 
 hydra:
