@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from datasets import load_dataset
 
-from ph_robust.data_processing.processing import process_data
+from ph_robust.data_processing.processing import process_data, process_test
 from ph_robust.data_processing.datasets import PrecomputedDataset
 
 
@@ -45,3 +45,34 @@ def build_dataloaders(cfg):
         pin_memory=True,
     )
     return train_loader, val_loader
+
+
+def build_test_loader(cfg):
+    data_path = cfg.data.path
+    print(f"Looking for data in :\n{data_path}")
+    data_path += "test"
+    if cfg.topo.max_norm:
+        data_path = data_path + "mn"
+
+    if not os.path.isdir(data_path):
+        print("----- Processed Data not found ------")
+        ds = load_dataset("zh-plus/tiny-imagenet", split="valid")
+        process_test(
+            data_set=ds,
+            data_path=data_path,
+            cfg=cfg,
+        )
+    else:
+        print("----- Using Cached Dataset ----- ")
+
+    resize = transforms.Compose([transforms.Resize((224, 224), antialias=True)])
+    test_ds = PrecomputedDataset(data_path, version_folders=["test"], transform=resize)
+
+    test_loader = DataLoader(
+        test_ds,
+        batch_size=cfg.train.batch_size,
+        shuffle=False,
+        num_workers=cfg.train.num_workers,
+        pin_memory=True,
+    )
+    return test_loader

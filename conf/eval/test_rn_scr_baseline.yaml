@@ -1,0 +1,15 @@
+# @package _global_
+# conf/eval/test_rn_scr_baseline.yaml
+defaults:
+  - override /model: resnet50_scr
+  - override /topo: pi
+  - override /data: tiny_imagenet
+  - override /optim: adam
+
+run_name: Baseline_Scr
+
+model:
+  hidden_size: 1024
+  tbs: normal 
+
+topo_test: False
