@@ -1,7 +1,7 @@
 # conf/experiment/ft_pi_img.yaml
 # @package _global_
 defaults:
-  - override /model: 
+  - override /model: pi_img
   - override /topo: pi
   - override /data: tiny_imagenet
   - override /optim: adamw
