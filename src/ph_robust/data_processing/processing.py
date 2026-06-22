@@ -162,7 +162,7 @@ def process_test(data_set, data_path, cfg):
     # data_set = data_set['test']
     save_path = Path(data_path)
     try:
-        stat_path = save_path.resolve().parent
+        stat_path = save_path.resolve().parents[0]
         print(f"Looking for stats in {stat_path}")
         pi_mean, pi_std = load_stats(stat_path)
         print(f"Loaded Training stats -- Mean: {pi_mean}, Std: {pi_std}")
