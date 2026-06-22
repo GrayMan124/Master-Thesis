@@ -103,7 +103,9 @@ def process_test(data_set, data_path, args):
     # data_set = data_set['test']
     save_path = Path(data_path)
     try:
-        pi_mean, pi_std = load_stats(save_path)
+        stats_path = save_path.resolve().parent
+        print(f"Looking for stats in: {stats_path}\n")
+        pi_mean, pi_std = load_stats(stats_path)
         print(f"Loaded Training stats -- Mean: {pi_mean}, Std: {pi_std}")
     except:
         raise FileNotFoundError("Could not find topo_stats.json")
