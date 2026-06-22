@@ -28,7 +28,7 @@ def main(cfg: DictConfig) -> None:
 
     seed_all(cfg.seed)
 
-    data_path = cfg.data.data_path
+    data_path = cfg.data.path
     print(f"Looking for data in {data_path}")
     test_loader = build_test_loader(cfg=cfg)
 
