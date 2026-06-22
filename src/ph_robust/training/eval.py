@@ -41,7 +41,7 @@ def test_model(model, dataloader, criterion, cfg):
             current_batch_size = inputs.size(0)
         labels = labels.to(device)
 
-        if False:  # not cfg.eval.ph_test:  # TODO: add this to the configs
+        if True:  # not cfg.eval.ph_test:  # TODO: add this to the configs
             outputs = model(inputs)
         else:
             x1 = torch.nn.functional.interpolate(
