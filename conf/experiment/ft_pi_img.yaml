@@ -1,5 +1,5 @@
-# conf/experiment/ft_pi_img.yaml
 # @package _global_
+# conf/experiment/ft_pi_img.yaml
 defaults:
   - override /model: pi_img
   - override /topo: pi
