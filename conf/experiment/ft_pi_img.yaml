@@ -15,6 +15,7 @@ train:
 model:
   hidden_size: 512
   tbs: normal 
+  ft_attn: false
 
 topo:
   concat: false 
